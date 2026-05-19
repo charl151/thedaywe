@@ -293,14 +293,14 @@ const PRODUCTS = {
 
 const FRAME_COLOURS = ["black","white","natural"];
 
-// Gelato productUids
-// Unframed: premium matte poster
-// Framed: wooden framed poster (pine, shatterproof perspex)
+// Gelato productUids — correct format from API docs
+// Unframed: premium matte 200gsm poster
+// Framed: wooden framed poster with perspex
 const GELATO_SKUS = {
-  unframed_a4: { uid: "poster_210x297-mm-a4_170-gsm-65lb-uncoated_4-0_ver",           frame: null },
-  unframed_a3: { uid: "poster_297x420-mm-a3_170-gsm-65lb-uncoated_4-0_ver",           frame: null },
-  framed_a4:   { uid: "framed-poster_210x297-mm-a4_170-gsm-65lb-uncoated_4-0_ver",    frame: true },
-  framed_a3:   { uid: "framed-poster_297x420-mm-a3_170-gsm-65lb-uncoated_4-0_ver",    frame: true },
+  unframed_a4: { uid: "flat_product_pf_210x297-mm-a4_pt_200-gsm-uncoated_cl_4-0_ct_none_prt_none_sft_none_set_none_ver", frame: false },
+  unframed_a3: { uid: "flat_product_pf_297x420-mm-a3_pt_200-gsm-uncoated_cl_4-0_ct_none_prt_none_sft_none_set_none_ver", frame: false },
+  framed_a4:   { uid: "framed_product_pf_210x297-mm-a4_pt_200-gsm-uncoated_cl_4-0_ver", frame: true },
+  framed_a3:   { uid: "framed_product_pf_297x420-mm-a3_pt_200-gsm-uncoated_cl_4-0_ver", frame: true },
 };
 
 // ── Currency config ───────────────────────────────────────────────────────────
