@@ -8675,24 +8675,18 @@ export default function App() {
     if (!q) return;
     setLocLoading(true); setLocResults([]); setLocError("");
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 400,
-          messages: [{
-            role: "user",
-            content: 'Return exactly 4 real places matching "' + q + '" as a JSON array only. No markdown. Format: [{"name":"City, Country","lat":0.0000,"lon":0.0000}]. Real decimal coordinates only.'
-          }]
-        })
-      });
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
+        { headers: { "Accept-Language": "en", "User-Agent": "TheDayWe/1.0" } }
+      );
       const data = await res.json();
-      const text = (data.content && data.content[0] && data.content[0].text) || "";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const results = JSON.parse(clean);
-      if (!Array.isArray(results) || !results.length) setLocError("No results found.");
-      else setLocResults(results);
+      if (!data.length) { setLocError("No results found."); setLocLoading(false); return; }
+      const results = data.map(r => ({
+        name: r.display_name.split(",").slice(0,3).join(",").trim(),
+        lat:  parseFloat(r.lat),
+        lon:  parseFloat(r.lon),
+      }));
+      setLocResults(results);
     } catch(e) {
       setLocError("Search failed — enter coordinates manually below.");
     }
