@@ -8389,8 +8389,6 @@ const BG = [
 
 const ALL = [...NAMED, ...BG];
 
-const ALL = [...NAMED, ...BG];
-
 // ── Supabase config ──────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://svovecuaibdhgovxafkw.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2b3ZlY3VhaWJkaGdvdnhhZmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTA4MzgsImV4cCI6MjA5NDc4NjgzOH0.1o6xTIskEJdgbD8HggnPofRycTQ28jDtJMJrkRkHMus";
