@@ -274,29 +274,75 @@ const EMAILJS_SERVICE  = "service_8mbhj8t";
 const EMAILJS_TEMPLATE = "template_ajhkgmf";
 const EMAILJS_KEY      = "QXOKA-I7agQSV90sZ";
 const STRIPE_KEY       = "pk_live_51TYcCcLm3wkyrLhBMiQmhoaVcM0s9itHw38F5hmFIL6Tpic3liUeadDPdAB4lblLPNxxnAXOsL1wlSEakW9RLXac001Mbqa7xx";
-const PRODIGI_KEY      = "ea29e758-e3e3-44aa-a3b4-7034dd51fdd6";
+const GELATO_KEY       = "bf6b497d-a24d-4020-a395-89d520be0d27-3a553e6a-11d0-4431-b23e-2ca3c9144346:982872e3-93cc-45be-a349-2d25087cc72e";
 const OWNER_EMAIL      = "thedaywe@gmail.com";
 const OWNER_PASSWORD   = "thedaywe2024";
 
 const PRODUCTS = {
-  digital:      { label:"Digital Download", sub:"Instant high-res file", price:22,  physical:false },
-  unframed_a4:  { label:"Unframed Print",   sub:"A4 · 210×297mm",        price:45,  physical:true,  size:"a4",  framed:false },
-  unframed_a3:  { label:"Unframed Print",   sub:"A3 · 297×420mm",        price:55,  physical:true,  size:"a3",  framed:false },
-  framed_a4:    { label:"Framed Print",     sub:"A4 · 210×297mm",        price:80,  physical:true,  size:"a4",  framed:true  },
-  framed_a3:    { label:"Framed Print",     sub:"A3 · 297×420mm",        price:99,  physical:true,  size:"a3",  framed:true  },
+  digital:      { label:"Digital Download", sub:"Instant high-res file", physical:false,
+    prices: { NZD:22,  AUD:20,  GBP:15,  USD:20,  EUR:20  } },
+  unframed_a4:  { label:"Unframed Print",   sub:"A4 · 210×297mm",        physical:true,  size:"a4",  framed:false,
+    prices: { NZD:55,  AUD:50,  GBP:35,  USD:45,  EUR:42  } },
+  unframed_a3:  { label:"Unframed Print",   sub:"A3 · 297×420mm",        physical:true,  size:"a3",  framed:false,
+    prices: { NZD:69,  AUD:62,  GBP:45,  USD:55,  EUR:52  } },
+  framed_a4:    { label:"Framed Print",     sub:"A4 · Wood frame",        physical:true,  size:"a4",  framed:true,
+    prices: { NZD:99,  AUD:89,  GBP:65,  USD:85,  EUR:80  } },
+  framed_a3:    { label:"Framed Print",     sub:"A3 · Wood frame",        physical:true,  size:"a3",  framed:true,
+    prices: { NZD:129, AUD:115, GBP:89,  USD:110, EUR:105 } },
 };
 
 const FRAME_COLOURS = ["black","white","natural"];
 
-// Prodigi SKUs for AU lab
-const PRODIGI_SKUS = {
-  unframed_a4: "GLOBAL-PRINT-A4",
-  unframed_a3: "GLOBAL-PRINT-A3",
-  framed_a4:   "GLOBAL-CFS-A4",
-  framed_a3:   "GLOBAL-CFS-A3",
+// Gelato productUids
+// Unframed: premium matte poster
+// Framed: wooden framed poster (pine, shatterproof perspex)
+const GELATO_SKUS = {
+  unframed_a4: { uid: "poster_210x297-mm-a4_170-gsm-65lb-uncoated_4-0_ver",           frame: null },
+  unframed_a3: { uid: "poster_297x420-mm-a3_170-gsm-65lb-uncoated_4-0_ver",           frame: null },
+  framed_a4:   { uid: "framed-poster_210x297-mm-a4_170-gsm-65lb-uncoated_4-0_ver",    frame: true },
+  framed_a3:   { uid: "framed-poster_297x420-mm-a3_170-gsm-65lb-uncoated_4-0_ver",    frame: true },
 };
 
-function generateOrderNumber() {
+// ── Currency config ───────────────────────────────────────────────────────────
+// Base prices in NZD — conversion rates are approximate and updated periodically
+const CURRENCIES = {
+  NZD: { symbol:"$",  code:"NZD", rate:1.000,  countries:["NZ"] },
+  AUD: { symbol:"A$", code:"AUD", rate:0.909,  countries:["AU"] },
+  GBP: { symbol:"£",  code:"GBP", rate:0.682,  countries:["GB"] },
+  USD: { symbol:"$",  code:"USD", rate:0.909,  countries:["US","CA"] },
+  EUR: { symbol:"€",  code:"EUR", rate:0.909,  countries:["DE","FR","IT","ES","NL","BE","AT","IE","PT","FI","GR"] },
+};
+
+function detectCurrency(countryCode) {
+  for (const [code, c] of Object.entries(CURRENCIES)) {
+    if (c.countries.includes(countryCode)) return code;
+  }
+  return "NZD";
+}
+
+function convertPrice(nzdPrice, currencyCode) {
+  const c = CURRENCIES[currencyCode] || CURRENCIES.NZD;
+  const converted = nzdPrice * c.rate;
+  // Round to nearest .99 for non-NZD
+  if (currencyCode === "NZD") return nzdPrice;
+  return Math.floor(converted) + 0.99;
+}
+
+function formatPrice(product, currencyCode) {
+  const c = CURRENCIES[currencyCode] || CURRENCIES.NZD;
+  const price = product.prices[currencyCode] ?? product.prices.NZD;
+  return c.symbol + price;
+}
+
+async function fetchUserCountry() {
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
+    return data.country_code || "NZ";
+  } catch(e) {
+    return "NZ";
+  }
+}
   const d = new Date();
   const yy = d.getFullYear().toString().slice(-2);
   const mm = String(d.getMonth()+1).padStart(2,"0");
@@ -8625,6 +8671,7 @@ export default function App() {
   const [printSize,     setPrintSize]    = useState("a4");
   const [ownerMode,     setOwnerMode]    = useState(false);
   const [ownerInput,    setOwnerInput]   = useState("");
+  const [currency,      setCurrency]     = useState("NZD");
 
   // Order flow state
   const [orderStep,     setOrderStep]    = useState(null); // null | "choose" | "details" | "paying" | "complete"
@@ -8636,6 +8683,7 @@ export default function App() {
   const [custCity,      setCustCity]     = useState("");
   const [custCountry,   setCustCountry]  = useState("New Zealand");
   const [custNotes,     setCustNotes]    = useState("");
+  const [custPostcode,  setCustPostcode] = useState("");
   const [orderNumber,   setOrderNumber]  = useState("");
   const [orderError,    setOrderError]   = useState("");
   const [orderLoading,  setOrderLoading] = useState(false);
@@ -8661,6 +8709,10 @@ export default function App() {
     drawPoster(canvas, { ...opts, sc: canvas.width / 400 });
     animRef.current = requestAnimationFrame(drawFrame);
   }, [opts]);
+
+  useEffect(() => {
+    fetchUserCountry().then(country => setCurrency(detectCurrency(country)));
+  }, []);
 
   useEffect(() => {
     if (step === 3) {
@@ -8745,45 +8797,67 @@ export default function App() {
     });
   }
 
-  // Submit order to Prodigi
-  async function submitToProdigi(order, imageDataUrl) {
-    const prod = PRODUCTS[order.product];
-    const sku  = PRODIGI_SKUS[order.product];
+  // Submit order to Gelato
+  async function submitToGelato(order, imageDataUrl) {
+    const sku = GELATO_SKUS[order.product];
     if (!sku) return;
 
-    // Convert dataUrl to base64
-    const base64 = imageDataUrl.split(",")[1];
+    // Upload image to a temporary URL — Gelato needs a URL not base64
+    // We'll use a data URL directly which Gelato supports
+    const nameParts = order.custName.trim().split(" ");
+    const firstName = nameParts[0];
+    const lastName  = nameParts.slice(1).join(" ") || firstName;
+
+    // Map frame colour to Gelato format
+    const frameColourMap = { black:"black", white:"white", natural:"natural_wood" };
+    const gelFrame = frameColourMap[order.frameColour] || "black";
+
+    // Build productUid with frame colour for framed products
+    let productUid = sku.uid;
+    if (sku.frame) {
+      // Insert frame colour into UID
+      productUid = productUid.replace("framed-poster_", `framed-poster_${gelFrame}_`);
+    }
 
     const body = {
-      merchantReference: order.orderNumber,
-      shippingMethod: "Standard",
-      recipient: {
-        name:    order.custName,
-        email:   order.custEmail,
-        address: {
-          line1:       order.custAddress,
-          townOrCity:  order.custCity,
-          countryCode: "NZ",
-        }
-      },
+      orderType: "order",
+      orderReferenceId: order.orderNumber,
+      customerReferenceId: order.custEmail,
+      currency: order.currency || "NZD",
       items: [{
-        merchantReference: order.orderNumber + "-1",
-        sku,
-        copies: 1,
-        sizing: "fillPrintArea",
-        attributes: prod.framed ? { frameColour: order.frameColour } : {},
-        assets: [{ printArea: "default", base64: base64 }]
-      }]
+        itemReferenceId: order.orderNumber + "-1",
+        productUid,
+        files: [{ type:"default", url: imageDataUrl }],
+        quantity: 1,
+      }],
+      shipmentMethodUid: "standard",
+      shippingAddress: {
+        firstName,
+        lastName,
+        addressLine1: order.custAddress,
+        city:         order.custCity,
+        country:      order.custCountry === "New Zealand" ? "NZ" :
+                      order.custCountry === "Australia"   ? "AU" :
+                      order.custCountry === "United Kingdom" ? "GB" :
+                      order.custCountry === "United States" ? "US" : "NZ",
+        email:        order.custEmail,
+        postCode:     order.custPostcode || "",
+      }
     };
 
-    await fetch("https://api.prodigi.com/v4.0/orders", {
+    const res = await fetch("https://order.gelatoapis.com/v4/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-Key": PRODIGI_KEY,
+        "X-API-KEY": GELATO_KEY,
       },
       body: JSON.stringify(body)
     });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Gelato error:", err);
+    }
   }
 
   // Load Stripe and open payment
@@ -8842,6 +8916,7 @@ export default function App() {
       const card   = window._cardElement;
       const orderNum = window._orderNum;
       const prod   = PRODUCTS[product];
+      const price  = prod.prices[currency] ?? prod.prices.NZD;
 
       // Create payment method
       const { paymentMethod, error } = await stripe.createPaymentMethod({
@@ -8864,8 +8939,9 @@ export default function App() {
       const order = {
         orderNumber: orderNum,
         product, frameColour,
-        custName, custEmail, custAddress, custCity, custCountry, custNotes,
-        price: prod.price,
+        custName, custEmail, custAddress, custCity, custPostcode, custCountry, custNotes,
+        price: formatPrice(prod, currency),
+        currency,
         date: new Date().toISOString(),
         paymentMethodId: paymentMethod.id,
         style: styleName, title, locationName, dateStr, timeStr,
@@ -8890,9 +8966,9 @@ export default function App() {
         is_digital:   !prod.physical ? "yes" : "no",
       });
 
-      // If physical, submit to Prodigi
+      // If physical, submit to Gelato
       if (prod.physical) {
-        await submitToProdigi(order, imageUrl);
+        await submitToGelato(order, imageUrl);
       }
 
       setCompletedOrder({ ...order, imageUrl: prod.physical ? null : imageUrl });
@@ -8988,7 +9064,18 @@ export default function App() {
         <h1 style={{ fontSize:"clamp(26px,5vw,38px)", fontWeight:"300", margin:"0 0 4px", letterSpacing:"0.04em", fontStyle:"italic", lineHeight:1.1 }}>
           The Day We
         </h1>
-        {/* Owner mode toggle — hidden in bottom right of header */}
+        {/* Currency selector */}
+        <div style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", left:"12px" }}>
+          <select value={currency} onChange={e => setCurrency(e.target.value)}
+            style={{ fontSize:"10px", color:txtSub, background:"transparent", border:"1px solid "+cardBdr,
+              borderRadius:"5px", padding:"3px 6px", cursor:"pointer", fontFamily:"'Georgia', serif",
+              outline:"none" }}>
+            {Object.entries(CURRENCIES).map(([code, c]) => (
+              <option key={code} value={code}>{c.symbol} {code}</option>
+            ))}
+          </select>
+        </div>
+        {/* Owner mode toggle */}
         <div style={{ position:"absolute", bottom:"8px", right:"12px" }}>
           {ownerMode ? (
             <button onClick={() => setOwnerMode(false)}
@@ -8999,7 +9086,7 @@ export default function App() {
           ) : (
             <button onClick={() => {
               const pw = prompt("Owner password:");
-              if (pw === "thedaywe2024") setOwnerMode(true);
+              if (pw === OWNER_PASSWORD) setOwnerMode(true);
             }}
               style={{ fontSize:"9px", color:txtSub, background:"transparent", border:"none",
                 padding:"3px 8px", cursor:"pointer", opacity:0.3, fontFamily:"'Georgia', serif" }}>
@@ -9273,7 +9360,7 @@ export default function App() {
                     <div style={{ fontSize:"13px", marginBottom:"2px" }}>{p.label}</div>
                     <div style={{ fontSize:"10px", color:txtSub }}>{p.sub}</div>
                   </div>
-                  <div style={{ fontSize:"16px", fontWeight:"300" }}>${p.price} NZD</div>
+                  <div style={{ fontSize:"16px", fontWeight:"300" }}>{formatPrice(p, currency)}</div>
                 </button>
               ))}
             </div>
@@ -9300,7 +9387,7 @@ export default function App() {
             <div style={{ display:"flex", gap:"8px" }}>
               <button onClick={() => setOrderStep(null)} style={backBtn}>← Back</button>
               <button onClick={() => setOrderStep("details")} style={nextBtn}>
-                Continue → ${PRODUCTS[product]?.price} NZD
+              Continue → {formatPrice(PRODUCTS[product], currency)}
               </button>
             </div>
           </div>
@@ -9324,6 +9411,9 @@ export default function App() {
                 <label style={lbl}>City</label>
                 <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCity}
                   onChange={e => setCustCity(e.target.value)} placeholder="Auckland" />
+                <label style={lbl}>Postcode</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custPostcode}
+                  onChange={e => setCustPostcode(e.target.value)} placeholder="1010" />
                 <label style={lbl}>Country</label>
                 <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
                   onChange={e => setCustCountry(e.target.value)} />
@@ -9355,7 +9445,7 @@ export default function App() {
             <div style={card}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
                 <span style={{ ...lbl, marginBottom:0 }}>Payment</span>
-                <span style={{ fontSize:"16px", fontWeight:"300", color:txtMain }}>${PRODUCTS[product]?.price} NZD</span>
+                <span style={{ fontSize:"16px", fontWeight:"300", color:txtMain }}>{formatPrice(PRODUCTS[product], currency)}</span>
               </div>
               <div style={{ fontSize:"11px", color:txtSub, marginBottom:"16px" }}>
                 {PRODUCTS[product]?.label} · {PRODUCTS[product]?.sub}
@@ -9370,7 +9460,7 @@ export default function App() {
                   background:orderLoading ? txtSub : accent, border:"none", color:accentFg,
                   fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
                   cursor:orderLoading?"wait":"pointer", fontFamily:"'Georgia', serif" }}>
-                {orderLoading ? "Processing…" : `Pay $${PRODUCTS[product]?.price} NZD`}
+                {orderLoading ? "Processing…" : `Pay ${formatPrice(PRODUCTS[product], currency)}`}
               </button>
               <div style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"10px" }}>
                 Secured by Stripe · Your card details are never stored
