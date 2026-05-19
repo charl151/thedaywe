@@ -263,8 +263,8 @@ const STYLES = {
 
 // Print sizes at 300dpi
 const PRINT_SIZES = {
-  "8x10":  { label:'8×10"',  sub:"20×25cm",  w:2400, h:3000 },
-  "12x16": { label:'12×16"', sub:"30×40cm",  w:3600, h:4800 },
+  "8x10":  { label:'8×10"',  sub:"20×25cm",  w:2400, h:3200 },
+  "12x16": { label:'12×16"', sub:"30×40cm",  w:3600, h:5000 },
 };
 
 // ── Business config ──────────────────────────────────────────────────────────
@@ -8393,6 +8393,28 @@ const ALL = [...NAMED, ...BG];
 const SUPABASE_URL = "https://svovecuaibdhgovxafkw.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2b3ZlY3VhaWJkaGdvdnhhZmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTA4MzgsImV4cCI6MjA5NDc4NjgzOH0.1o6xTIskEJdgbD8HggnPofRycTQ28jDtJMJrkRkHMus";
 
+// ── Cloudinary config ────────────────────────────────────────────────────────
+const CLOUDINARY_CLOUD = "daqsu1tkm";
+const CLOUDINARY_KEY   = "836136218237837";
+const CLOUDINARY_SECRET = "yDz4mHWr3ESoLGHKEt8uDf6A9kE";
+
+async function uploadToCloudinary(dataUrl) {
+  // Convert base64 dataUrl to blob
+  const res  = await fetch(dataUrl);
+  const blob = await res.blob();
+  const form = new FormData();
+  form.append("file", blob, "starmap.png");
+  form.append("upload_preset", "thedaywe_maps");
+  form.append("cloud_name", CLOUDINARY_CLOUD);
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: "POST",
+    body: form
+  });
+  const data = await r.json();
+  if (!data.secure_url) throw new Error("Cloudinary upload failed: " + JSON.stringify(data));
+  return data.secure_url;
+}
+
 async function validateCode(code) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&used=eq.false&select=code,type`,
@@ -8517,6 +8539,19 @@ function computeStars(dateStr, timeStr, lat, lon) {
   });
 }
 
+function calcPosterHeight(W, sc, opts) {
+  const { title, locationName, showDate, showCoords, showFootnote } = opts;
+  const PAD = 42*sc, skyR = W*0.415, skyY = PAD + skyR + 20*sc;
+  const textY = skyY + skyR + 26*sc;
+  let ty = textY + 14*sc;
+  if (title) ty += 24*sc;
+  if (locationName) ty += 14*sc;
+  if (showDate) ty += 13*sc;
+  if (showCoords) ty += 14*sc;
+  ty += PAD * 1.2; // bottom padding for brand + border
+  return Math.ceil(ty);
+}
+
 function drawPoster(canvas, opts) {
   const { stars, styleName, shape, title, footnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, sc, watermark } = opts;
   const S   = STYLES[styleName];
@@ -8621,27 +8656,25 @@ function drawPoster(canvas, opts) {
   if (title) {
     ctx.fillStyle = S.textColor;
     ctx.font = "italic " + (17*sc) + "px Georgia,serif";
-    ctx.fillText(title, W/2, ty); ty += 26*sc;
+    ctx.fillText(title, W/2, ty); ty += 24*sc;
   }
   if (locationName) {
     ctx.fillStyle = S.textColor;
-    ctx.font = "bold " + (10.5*sc) + "px Georgia,serif";
-    ctx.fillText(locationName.toUpperCase(), W/2, ty); ty += 17*sc;
+    ctx.font = "bold " + (9*sc) + "px Georgia,serif";
+    ctx.fillText(locationName.toUpperCase(), W/2, ty); ty += 14*sc;
   }
   if (showDate && dateStr) {
     const [y,m,d] = dateStr.split("-").map(Number);
     const dateText = ordinal(d) + " " + MONTHS[m-1].toUpperCase() + " " + y;
-    ctx.fillStyle = S.subColor; ctx.font = (9*sc) + "px Georgia,serif";
-    ctx.fillText(dateText + (showTime && timeStr ? " AT " + timeStr : ""), W/2, ty); ty += 15*sc;
+    ctx.fillStyle = S.subColor; ctx.font = (7.5*sc) + "px Georgia,serif";
+    ctx.fillText(dateText + (showTime && timeStr ? " AT " + timeStr : ""), W/2, ty); ty += 13*sc;
   }
   if (showCoords) {
-    ctx.fillStyle = S.subColor; ctx.font = (9*sc) + "px Georgia,serif";
-    ctx.fillText(fmtCoords(lat, lon), W/2, ty); ty += 18*sc;
-  }
-  if (showFootnote && footnote) {
-    ctx.fillStyle = S.subColor;
-    ctx.font = "italic " + (7.5*sc) + "px Georgia,serif";
-    ctx.fillText(footnote, W/2, ty);
+    ctx.fillStyle = S.subColor; ctx.font = (7*sc) + "px Georgia,serif";
+    ctx.globalAlpha = 0.7;
+    ctx.fillText(fmtCoords(lat, lon), W/2, ty);
+    ctx.globalAlpha = 1.0;
+    ty += 14*sc;
   }
 
   ctx.strokeStyle = S.divColor; ctx.lineWidth = 0.7*sc;
@@ -8702,7 +8735,7 @@ export default function App() {
   const [showCoords,    setShowCoords]   = useState(true);
   const [showDate,      setShowDate]     = useState(true);
   const [showTime,      setShowTime]     = useState(true);
-  const [showFootnote,  setShowFootnote] = useState(true);
+  const [showFootnote,  setShowFootnote] = useState(false);
   const [downloading,   setDownloading]  = useState(false);
   const [downloadUrl,   setDownloadUrl]  = useState(null);
   const [printSize,     setPrintSize]    = useState("8x10");
@@ -8719,6 +8752,13 @@ export default function App() {
   const [codeLoading,   setCodeLoading]  = useState(false);
   const [codeValid,     setCodeValid]    = useState(null); // { code, type } | null
   const [codeUsed,      setCodeUsed]     = useState(false);
+  const [showWarning,   setShowWarning]   = useState(false);  // confirmation screen
+  const [custNameInput, setCustNameInput] = useState("");     // name on confirm screen
+  const [custEmailInput,setCustEmailInput]= useState("");     // email on confirm screen
+  const [sending,       setSending]       = useState(false);  // uploading/emailing
+  const [sendError,     setSendError]     = useState("");
+  const [sent,          setSent]          = useState(false);  // closing screen
+  const [sentToEmail,   setSentToEmail]   = useState("");
 
   // Order flow state (for direct/print purchases)
   const [orderStep,     setOrderStep]    = useState(null);
@@ -8760,14 +8800,17 @@ export default function App() {
   const opts  = useMemo(() => ({
     stars, styleName, shape, title, footnote: computedFootnote,
     locationName, dateStr, timeStr, lat, lon,
-    showLines, showGrid, showCoords, showDate, showTime, showFootnote,
+    showLines, showGrid, showCoords, showDate, showTime,
     watermark: !ownerMode && !codeValid
   }), [stars, styleName, shape, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
 
   const drawFrame = useCallback(() => {
     const canvas = previewRef.current;
     if (!canvas) return;
-    drawPoster(canvas, { ...opts, sc: canvas.width / 400 });
+    const sc = canvas.width / 400;
+    const requiredH = calcPosterHeight(canvas.width, sc, opts);
+    if (canvas.height !== requiredH) canvas.height = requiredH;
+    drawPoster(canvas, { ...opts, sc });
     animRef.current = requestAnimationFrame(drawFrame);
   }, [opts]);
 
@@ -8817,23 +8860,23 @@ export default function App() {
     const off = document.createElement("canvas");
     const size = PRINT_SIZES[sizeKey || "8x10"];
     off.width  = size.w;
-    off.height = size.h;
     const sc = size.w / 800;
+    off.height = calcPosterHeight(size.w, sc, opts);
     drawPoster(off, { ...opts, sc, watermark: false });
     return off.toDataURL("image/png");
   }
 
-  function download() {
+  async function download() {
     setDownloading(true);
-    setTimeout(() => {
-      try {
-        const dataUrl = generateCleanPoster(printSize);
-        setDownloadUrl(dataUrl);
-      } catch(e) {
-        alert("Generation failed: " + e.message);
-      }
-      setDownloading(false);
-    }, 100);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    try {
+      const dataUrl = generateCleanPoster(printSize);
+      setDownloadUrl(dataUrl);
+      if (codeValid) await markCodeUsed(codeValid.code);
+    } catch(e) {
+      alert("Generation failed: " + e.message);
+    }
+    setDownloading(false);
   }
 
   // ── Code validation ──────────────────────────────────────────────────────────
@@ -8847,9 +8890,6 @@ export default function App() {
         setCodeError("Invalid or already used code. Please check and try again.");
       } else {
         setCodeValid(result);
-        // Mark as used immediately
-        await markCodeUsed(code);
-        setCodeUsed(true);
         // If physical code, set journey to print
         if (result.type === "physical") {
           setJourney("print");
@@ -9332,7 +9372,7 @@ export default function App() {
                   )}
                   <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"4px" }}>
                     {[["showLines","Constellations"],["showGrid","Grid"],["showCoords","Coordinates"],
-                      ["showDate","Date"],["showTime","Time"],["showFootnote","Footnote"]].map(([key, label]) => (
+                      ["showDate","Date"],["showTime","Time"]].map(([key, label]) => (
                       <label key={key} style={{ display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:txtSub, cursor:"pointer", fontFamily:"'Georgia', serif" }}>
                         <input type="checkbox"
                           checked={key==="showLines"?showLines:key==="showGrid"?showGrid:key==="showCoords"?showCoords:key==="showDate"?showDate:key==="showTime"?showTime:showFootnote}
@@ -9378,8 +9418,8 @@ export default function App() {
           <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
             {/* Canvas preview */}
             <div style={{ position:"relative", marginBottom:"10px" }}>
-              <canvas ref={previewRef} width={400} height={520}
-                style={{ width:"100%", borderRadius:"12px", display:"block",
+              <canvas ref={previewRef} width={400} height={580}
+                style={{ width:"100%", height:"auto", borderRadius:"12px", display:"block",
                   boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} />
               <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.1em" }}>
                 {stars.filter(s => s.alt > 0).length} stars visible
@@ -9396,22 +9436,99 @@ export default function App() {
                 onChange={e => setLocationName(e.target.value)} placeholder="Location name" />
             </div>
 
-            {/* Download / Order section */}
-            {(ownerMode || codeValid) && !isPhysicalJourney && (
-              // Digital download unlocked
+            {/* Download / Order section — code unlock flow */}
+            {codeValid && !isPhysicalJourney && !showWarning && (
               <div style={card}>
-                <span style={{ ...lbl, marginBottom:"12px" }}>Download Your Star Map</span>
+                <span style={{ ...lbl, marginBottom:"12px" }}>Ready to get your star map?</span>
                 <label style={lbl}>Print Size</label>
                 <select value={printSize} onChange={e => setPrintSize(e.target.value)}
-                  style={{ ...inp, marginBottom:"14px" }}>
+                  style={{ ...inp, marginBottom:"16px" }}>
                   {Object.entries(PRINT_SIZES).map(([k,s]) => (
-                    <option key={k} value={k}>{s.label} ({s.sub}) — {s.w}×{s.h}px</option>
+                    <option key={k} value={k}>{s.label} ({s.sub})</option>
                   ))}
                 </select>
-                <button onClick={download} disabled={downloading}
-                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:downloading?0.6:1 }}>
-                  {downloading ? "Generating…" : "↓ Download High-Res PNG"}
+                <button onClick={() => setShowWarning(true)}
+                  style={{ ...nextBtn, width:"100%", flex:"none" }}>
+                  Continue →
                 </button>
+              </div>
+            )}
+
+            {/* Warning + email screen */}
+            {codeValid && !isPhysicalJourney && showWarning && !sent && (
+              <div style={card}>
+                <div style={{ textAlign:"center", marginBottom:"20px" }}>
+                  <div style={{ fontSize:"28px", marginBottom:"8px" }}>⚠️</div>
+                  <div style={{ fontSize:"13px", fontWeight:"500", color:txtMain, marginBottom:"8px" }}>
+                    This is your final design
+                  </div>
+                  <div style={{ fontSize:"11px", color:txtSub, lineHeight:"1.8" }}>
+                    Once you confirm, your star map will be sent to your email.
+                    Please make sure you are happy with your design before continuing —
+                    it cannot be changed after this point.
+                  </div>
+                </div>
+                <label style={lbl}>Your Name</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custNameInput}
+                  onChange={e => setCustNameInput(e.target.value)} placeholder="Jane Smith" />
+                <label style={lbl}>Email Address</label>
+                <input style={{ ...inp, marginBottom:"16px" }} type="email" value={custEmailInput}
+                  onChange={e => setCustEmailInput(e.target.value)} placeholder="jane@email.com" />
+                {sendError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px", textAlign:"center" }}>{sendError}</div>}
+                <button onClick={async () => {
+                  if (!custNameInput || !custEmailInput) { setSendError("Please enter your name and email."); return; }
+                  setSending(true); setSendError("");
+                  try {
+                    const imageUrl = generateCleanPoster(printSize);
+                    const publicUrl = await uploadToCloudinary(imageUrl);
+                    await sendEmail({
+                      to_name: custNameInput,
+                      to_email: custEmailInput,
+                      order_number: codeValid.code,
+                      product: "Digital Star Map — " + PRINT_SIZES[printSize].label,
+                      style: styleName, title, location: locationName, date: dateStr,
+                      notes: "Download link: " + publicUrl,
+                      owner_email: OWNER_EMAIL,
+                      is_digital: "yes",
+                      download_url: publicUrl,
+                    });
+                    await markCodeUsed(codeValid.code);
+                    setSentToEmail(custEmailInput);
+                    setSent(true);
+                  } catch(e) {
+                    setSendError("Something went wrong: " + e.message + ". Please email thedayweprints@gmail.com");
+                  }
+                  setSending(false);
+                }} disabled={sending}
+                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:sending?0.6:1 }}>
+                  {sending ? "Sending your star map…" : "✓ Confirm & Send My Star Map"}
+                </button>
+                <button onClick={() => setShowWarning(false)}
+                  style={{ ...backBtn, width:"100%", flex:"none", marginTop:"8px" }}>
+                  ← Go back and edit
+                </button>
+              </div>
+            )}
+
+            {/* Sent confirmation screen */}
+            {codeValid && !isPhysicalJourney && sent && (
+              <div style={{ ...card, textAlign:"center" }}>
+                <div style={{ fontSize:"32px", marginBottom:"12px" }}>✨</div>
+                <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub, marginBottom:"12px" }}>
+                  Star Map Sent
+                </div>
+                <h2 style={{ fontSize:"20px", fontWeight:"300", fontStyle:"italic", margin:"0 0 12px", fontFamily:"'Cormorant Garamond', Georgia, serif" }}>
+                  It's on its way!
+                </h2>
+                <div style={{ fontSize:"12px", color:txtSub, lineHeight:"2", marginBottom:"20px" }}>
+                  Your star map has been sent to<br/>
+                  <strong style={{ color:txtMain }}>{sentToEmail}</strong><br/>
+                  Check your inbox — it may take a few minutes to arrive.
+                </div>
+                <div style={{ fontSize:"11px", color:txtSub, padding:"14px", background:isDark?"#111":"#f8f8f8", borderRadius:"8px", lineHeight:"1.8" }}>
+                  Any issues? Email us at<br/>
+                  <strong>thedayweprints@gmail.com</strong>
+                </div>
               </div>
             )}
 
@@ -9455,6 +9572,7 @@ export default function App() {
                       date: new Date().toISOString(), style: styleName, title, locationName, dateStr, timeStr,
                     };
                     await submitToGelato(order, imageUrl);
+                    if (codeValid) await markCodeUsed(codeValid.code);
                     await sendEmail({
                       to_name: custName, to_email: custEmail,
                       order_number: orderNum,
