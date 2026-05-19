@@ -362,6 +362,8 @@ async function fetchUserCountry() {
     return "NZ";
   }
 }
+
+function generateOrderNumber() {
   const d = new Date();
   const yy = d.getFullYear().toString().slice(-2);
   const mm = String(d.getMonth()+1).padStart(2,"0");
