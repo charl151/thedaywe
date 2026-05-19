@@ -263,8 +263,10 @@ const STYLES = {
 
 // Print sizes at 300dpi
 const PRINT_SIZES = {
-  "8x10":  { label:'8×10"',  sub:"20×25cm",  w:2400, h:3000 },
-  "12x16": { label:'12×16"', sub:"30×40cm",  w:3600, h:4800 },
+  a4:    { label:"A4",      sub:"210×297mm",  w:2480,  h:3508  },
+  a3:    { label:"A3",      sub:"297×420mm",  w:3508,  h:4961  },
+  us810: { label:"8×10\"",  sub:"US standard",w:2400,  h:3000  },
+  us1114:{ label:"11×14\"", sub:"US standard",w:3300,  h:4200  },
 };
 
 // ── Business config ──────────────────────────────────────────────────────────
@@ -277,50 +279,29 @@ const OWNER_EMAIL      = "thedaywe@gmail.com";
 const OWNER_PASSWORD   = "thedaywe2024";
 
 const PRODUCTS = {
-  digital:       { label:"Digital Download", sub:"Instant high-res file",  physical:false,
-    prices: { NZD:22,  AUD:20,  GBP:15,  USD:13,  EUR:12  } },
-  unframed_8x10: { label:"Unframed Print",   sub:"8×10\" · 20×25cm",       physical:true,  size:"8x10",  framed:false,
-    prices: { NZD:55,  AUD:50,  GBP:35,  USD:42,  EUR:40  } },
-  unframed_12x16:{ label:"Unframed Print",   sub:"12×16\" · 30×40cm",      physical:true,  size:"12x16", framed:false,
-    prices: { NZD:69,  AUD:62,  GBP:45,  USD:52,  EUR:50  } },
-  framed_8x10:   { label:"Framed Print",     sub:"8×10\" · Wood frame",    physical:true,  size:"8x10",  framed:true,
-    prices: { NZD:99,  AUD:89,  GBP:65,  USD:78,  EUR:75  } },
-  framed_12x16:  { label:"Framed Print",     sub:"12×16\" · Wood frame",   physical:true,  size:"12x16", framed:true,
-    prices: { NZD:129, AUD:115, GBP:89,  USD:105, EUR:99  } },
+  digital:      { label:"Digital Download", sub:"Instant high-res file", physical:false,
+    prices: { NZD:22,  AUD:20,  GBP:15,  USD:20,  EUR:20  } },
+  unframed_a4:  { label:"Unframed Print",   sub:"A4 · 210×297mm",        physical:true,  size:"a4",  framed:false,
+    prices: { NZD:55,  AUD:50,  GBP:35,  USD:45,  EUR:42  } },
+  unframed_a3:  { label:"Unframed Print",   sub:"A3 · 297×420mm",        physical:true,  size:"a3",  framed:false,
+    prices: { NZD:69,  AUD:62,  GBP:45,  USD:55,  EUR:52  } },
+  framed_a4:    { label:"Framed Print",     sub:"A4 · Wood frame",        physical:true,  size:"a4",  framed:true,
+    prices: { NZD:99,  AUD:89,  GBP:65,  USD:85,  EUR:80  } },
+  framed_a3:    { label:"Framed Print",     sub:"A3 · Wood frame",        physical:true,  size:"a3",  framed:true,
+    prices: { NZD:129, AUD:115, GBP:89,  USD:110, EUR:105 } },
 };
 
-const FRAME_COLOURS = ["black","white","wood","dark wood"];
+const FRAME_COLOURS = ["black","white","natural"];
 
-// Gelato frame colour mapping
-const GELATO_FRAME_MAP = {
-  "black":     "black",
-  "white":     "white",
-  "wood":      "natural_wood",
-  "dark wood": "dark_wood",
-};
-
-// Gelato productUids — all confirmed from dashboard
+// Gelato productUids — correct format from API docs
+// Unframed: premium matte 200gsm poster
+// Framed: wooden framed poster with perspex
 const GELATO_SKUS = {
-  unframed_8x10:  { uid: "flat_200x250-mm-8x10-inch_200-gsm-80lb-uncoated_4-0_ver",                                           frame: false },
-  unframed_12x16: { uid: "flat_300x400-mm-12x16-inch_200-gsm-80lb-uncoated_4-0_ver",                                          frame: false },
-  framed_8x10:  {
-    black:     "framed_poster_mounted_200x250-mm-8x10-inch_black_wood_w12xt22-mm_plexiglass_200x250-mm-8x10-inch_200-gsm-80lb-uncoated_4-0_ver",
-    white:     "framed_poster_mounted_200x250-mm-8x10-inch_white_wood_w12xt22-mm_plexiglass_200x250-mm-8x10-inch_200-gsm-80lb-uncoated_4-0_ver",
-    wood:      "framed_poster_mounted_200x250-mm-8x10-inch_natural-wood_wood_w12xt22-mm_plexiglass_200x250-mm-8x10-inch_200-gsm-80lb-uncoated_4-0_ver",
-    "dark wood":"framed_poster_mounted_200x250-mm-8x10-inch_dark-wood_wood_w12xt22-mm_plexiglass_200x250-mm-8x10-inch_200-gsm-80lb-uncoated_4-0_ver",
-    frame: true
-  },
-  framed_12x16: {
-    black:     "framed_poster_mounted_300x400-mm-12x16-inch_black_wood_w12xt22-mm_plexiglass_300x400-mm-12x16-inch_200-gsm-80lb-uncoated_4-0_ver",
-    white:     "framed_poster_mounted_300x400-mm-12x16-inch_white_wood_w12xt22-mm_plexiglass_300x400-mm-12x16-inch_200-gsm-80lb-uncoated_4-0_ver",
-    wood:      "framed_poster_mounted_300x400-mm-12x16-inch_natural-wood_wood_w12xt22-mm_plexiglass_300x400-mm-12x16-inch_200-gsm-80lb-uncoated_4-0_ver",
-    "dark wood":"framed_poster_mounted_300x400-mm-12x16-inch_dark-wood_wood_w12xt22-mm_plexiglass_300x400-mm-12x16-inch_200-gsm-80lb-uncoated_4-0_ver",
-    frame: true
-  },
+  unframed_a4: { uid: "flat_product_pf_210x297-mm-a4_pt_200-gsm-uncoated_cl_4-0_ct_none_prt_none_sft_none_set_none_ver", frame: false },
+  unframed_a3: { uid: "flat_product_pf_297x420-mm-a3_pt_200-gsm-uncoated_cl_4-0_ct_none_prt_none_sft_none_set_none_ver", frame: false },
+  framed_a4:   { uid: "framed_product_pf_210x297-mm-a4_pt_200-gsm-uncoated_cl_4-0_ver", frame: true },
+  framed_a3:   { uid: "framed_product_pf_297x420-mm-a3_pt_200-gsm-uncoated_cl_4-0_ver", frame: true },
 };
-
-// Countries where framed prints are available (good margins)
-const FRAMED_COUNTRIES = ["GB","US","DE","FR","IT","ES","NL","BE","AT","IE","PT","FI","GR","CA"];
 
 // ── Currency config ───────────────────────────────────────────────────────────
 // Base prices in NZD — conversion rates are approximate and updated periodically
@@ -362,8 +343,6 @@ async function fetchUserCountry() {
     return "NZ";
   }
 }
-
-function generateOrderNumber() {
   const d = new Date();
   const yy = d.getFullYear().toString().slice(-2);
   const mm = String(d.getMonth()+1).padStart(2,"0");
@@ -8689,7 +8668,7 @@ export default function App() {
   const [showFootnote,  setShowFootnote] = useState(true);
   const [downloading,   setDownloading]  = useState(false);
   const [downloadUrl,   setDownloadUrl]  = useState(null);
-  const [printSize,     setPrintSize]    = useState("8x10");
+  const [printSize,     setPrintSize]    = useState("a4");
   const [ownerMode,     setOwnerMode]    = useState(false);
   const [ownerInput,    setOwnerInput]   = useState("");
   const [currency,      setCurrency]     = useState("NZD");
@@ -8715,21 +8694,6 @@ export default function App() {
   const S   = STYLES[styleName];
   const isDark = S.dark;
   const computedFootnote = useAuto ? autoFootnote(locationName, dateStr) : footnote;
-
-  // Filter products based on detected country
-  const availableProducts = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(PRODUCTS).filter(([k, p]) => {
-        if (!p.framed) return true; // always show digital + unframed
-        return FRAMED_COUNTRIES.includes(
-          Object.entries(CURRENCIES).find(([,c]) => c.countries.includes(
-            Object.entries({NZD:["NZ"],AUD:["AU"],GBP:["GB"],USD:["US","CA"],EUR:["DE","FR","IT","ES","NL","BE","AT","IE","PT","FI","GR"]}
-            ).find(([code]) => code === currency)?.[1]?.[0] || "NZ"
-          ))?.[1]?.countries[0] || "NZ"
-        );
-      })
-    );
-  }, [currency]);
 
   const stars = useMemo(() => computeStars(dateStr, timeStr, lat, lon), [dateStr, timeStr, lat, lon]);
   const opts  = useMemo(() => ({
@@ -8838,32 +8802,28 @@ export default function App() {
     const sku = GELATO_SKUS[order.product];
     if (!sku) return;
 
+    // Upload image to a temporary URL — Gelato needs a URL not base64
+    // We'll use a data URL directly which Gelato supports
     const nameParts = order.custName.trim().split(" ");
     const firstName = nameParts[0];
     const lastName  = nameParts.slice(1).join(" ") || firstName;
 
-    // Get correct productUid — framed uses colour-specific UIDs
-    let productUid;
-    if (sku.frame) {
-      productUid = sku[order.frameColour] || sku["black"];
-    } else {
-      productUid = sku.uid;
-    }
+    // Map frame colour to Gelato format
+    const frameColourMap = { black:"black", white:"white", natural:"natural_wood" };
+    const gelFrame = frameColourMap[order.frameColour] || "black";
 
-    const countryMap = {
-      "New Zealand":"NZ", "Australia":"AU", "United Kingdom":"GB",
-      "United States":"US", "Canada":"CA", "Germany":"DE",
-      "France":"FR", "Netherlands":"NL", "Ireland":"IE",
-      "Italy":"IT", "Spain":"ES", "Belgium":"BE",
-      "Austria":"AT", "Portugal":"PT", "Finland":"FI", "Greece":"GR"
-    };
-    const countryCode = countryMap[order.custCountry] || "NZ";
+    // Build productUid with frame colour for framed products
+    let productUid = sku.uid;
+    if (sku.frame) {
+      // Insert frame colour into UID
+      productUid = productUid.replace("framed-poster_", `framed-poster_${gelFrame}_`);
+    }
 
     const body = {
       orderType: "order",
       orderReferenceId: order.orderNumber,
       customerReferenceId: order.custEmail,
-      currency: "USD",
+      currency: order.currency || "NZD",
       items: [{
         itemReferenceId: order.orderNumber + "-1",
         productUid,
@@ -8876,9 +8836,12 @@ export default function App() {
         lastName,
         addressLine1: order.custAddress,
         city:         order.custCity,
-        postCode:     order.custPostcode || "",
-        country:      countryCode,
+        country:      order.custCountry === "New Zealand" ? "NZ" :
+                      order.custCountry === "Australia"   ? "AU" :
+                      order.custCountry === "United Kingdom" ? "GB" :
+                      order.custCountry === "United States" ? "US" : "NZ",
         email:        order.custEmail,
+        postCode:     order.custPostcode || "",
       }
     };
 
@@ -9386,7 +9349,7 @@ export default function App() {
           <div>
             <div style={{ ...card }}>
               <span style={{ ...lbl, marginBottom:"16px" }}>Choose your format</span>
-              {Object.entries(availableProducts).map(([k, p]) => (
+              {Object.entries(PRODUCTS).map(([k, p]) => (
                 <button key={k} onClick={() => setProduct(k)}
                   style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px",
                     border:"1.5px solid "+(product===k ? accent : cardBdr),
