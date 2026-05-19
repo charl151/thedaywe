@@ -271,7 +271,7 @@ const PRINT_SIZES = {
 const EMAILJS_SERVICE  = "service_8mbhj8t";
 const EMAILJS_TEMPLATE = "template_ajhkgmf";
 const EMAILJS_KEY      = "QXOKA-I7agQSV90sZ";
-const STRIPE_KEY       = "pk_live_51TYcCcLm3wkyrLhBMiQmhoaVcM0s9itHw38F5hmFIL6Tpic3liUeadDPdAB4lblLPNxxnAXOsL1wlSEakW9RLXac001Mbqa7xx";
+const STRIPE_KEY       = "pk_test_51TYcCcLm3wkyrLhBNL36KIRIsx9Nq64jtUbT5XGMEgSoaqDUHK5Iy2zdZ24xC244m5AEPd8kZUGVEmKBLHzedXI200TgGXDHkQ";
 const GELATO_KEY       = "bf6b497d-a24d-4020-a395-89d520be0d27-3a553e6a-11d0-4431-b23e-2ca3c9144346:982872e3-93cc-45be-a349-2d25087cc72e";
 const OWNER_EMAIL      = "thedaywe@gmail.com";
 const OWNER_PASSWORD   = "thedaywe2024";
@@ -8389,6 +8389,37 @@ const BG = [
 
 const ALL = [...NAMED, ...BG];
 
+const ALL = [...NAMED, ...BG];
+
+// ── Supabase config ──────────────────────────────────────────────────────────
+const SUPABASE_URL = "https://svovecuaibdhgovxafkw.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2b3ZlY3VhaWJkaGdvdnhhZmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTA4MzgsImV4cCI6MjA5NDc4NjgzOH0.1o6xTIskEJdgbD8HggnPofRycTQ28jDtJMJrkRkHMus";
+
+async function validateCode(code) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&used=eq.false&select=code,type`,
+    { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
+  );
+  const data = await res.json();
+  return data && data.length > 0 ? data[0] : null;
+}
+
+async function markCodeUsed(code) {
+  await fetch(
+    `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({ used: true, used_at: new Date().toISOString() })
+    }
+  );
+}
+
 function d2r(d) { return d * Math.PI / 180; }
 function r2d(r) { return r * 180 / Math.PI; }
 
@@ -8447,7 +8478,9 @@ function autoFootnote(loc, ds) {
 }
 
 function fmtCoords(lat, lon) {
-  return Math.abs(lat).toFixed(2) + "\u00b0 " + (lat>=0?"N":"S") + "  " + Math.abs(lon).toFixed(2) + "\u00b0 " + (lon>=0?"E":"W");
+  const la = Math.abs(lat).toFixed(4) + "° " + (lat>=0?"N":"S");
+  const lo = Math.abs(lon).toFixed(4) + "° " + (lon>=0?"E":"W");
+  return la + "  " + lo;
 }
 
 function clipShape(ctx, shape, cx, cy, r) {
@@ -8497,27 +8530,22 @@ function drawPoster(canvas, opts) {
   ctx.fillStyle = S.posterBg;
   ctx.fillRect(0, 0, W, H);
 
-  // Poster border
   ctx.strokeStyle = S.dark ? "#2a2a2a" : "#d0d0d0";
   ctx.lineWidth   = 1*sc;
   ctx.strokeRect(PAD*0.5, PAD*0.5, W-PAD, H-PAD);
 
-  // Sky
   ctx.save();
   clipShape(ctx, shape, skyX, skyY, skyR);
   ctx.fillStyle = S.skyBg;
   ctx.fill();
   ctx.clip();
 
-  // Grid — evenly spaced visual rings + azimuth spokes like reference photo
   if (showGrid) {
     const ringColor  = S.lineColor.replace(/[\d.]+\)$/, "0.28)");
     const spokeColor = S.lineColor.replace(/[\d.]+\)$/, "0.18)");
-    // Outer border ring (horizon)
     ctx.strokeStyle = S.lineColor.replace(/[\d.]+\)$/, "0.5)");
     ctx.lineWidth = 1.0*sc;
     ctx.beginPath(); ctx.arc(skyX, skyY, skyR, 0, Math.PI*2); ctx.stroke();
-    // 5 inner rings evenly spaced
     for (let i = 1; i <= 5; i++) {
       ctx.strokeStyle = ringColor;
       ctx.lineWidth = 0.45*sc;
@@ -8525,7 +8553,6 @@ function drawPoster(canvas, opts) {
       ctx.arc(skyX, skyY, skyR * (i/6), 0, Math.PI*2);
       ctx.stroke();
     }
-    // Azimuth spokes every 15°
     for (let az = 0; az < 360; az += 15) {
       ctx.strokeStyle = az % 90 === 0 ? ringColor : spokeColor;
       ctx.lineWidth = az % 90 === 0 ? 0.5*sc : 0.35*sc;
@@ -8536,13 +8563,11 @@ function drawPoster(canvas, opts) {
     }
   }
 
-  // Constellation lines
   if (showLines) {
     CONST_LINES.forEach(({ segs }) => {
       segs.forEach(([ia, ib]) => {
         const sa = stars[ia], sb = stars[ib];
         if (!sa || !sb) return;
-        // Only draw if BOTH stars are above horizon
         if (sa.alt < 0 || sb.alt < 0) return;
         const pa = project(sa.alt, sa.az, skyR);
         const pb = project(sb.alt, sb.az, skyR);
@@ -8557,15 +8582,12 @@ function drawPoster(canvas, opts) {
     });
   }
 
-  // Stars — subtle glow only for very brightest, clean dots for rest
   stars.forEach(star => {
     const p = project(star.alt, star.az, skyR);
     if (!p) return;
     const sx = skyX+p.x, sy = skyY+p.y;
     const sz = sSize(star.mag, sc);
     const al = sAlpha(star.mag);
-
-    // Very subtle glow only for mag < 1 (Sirius, Vega, Canopus etc)
     if (star.mag < 1) {
       const glowR = sz * 2.5;
       const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, glowR);
@@ -8576,7 +8598,6 @@ function drawPoster(canvas, opts) {
       ctx.arc(sx, sy, glowR, 0, Math.PI*2);
       ctx.fill();
     }
-
     ctx.beginPath();
     ctx.arc(sx, sy, sz, 0, Math.PI*2);
     ctx.fillStyle = "rgba(" + S.starRGB + "," + al + ")";
@@ -8585,7 +8606,6 @@ function drawPoster(canvas, opts) {
 
   ctx.restore();
 
-  // Circle border
   ctx.save();
   clipShape(ctx, shape, skyX, skyY, skyR);
   ctx.strokeStyle = S.border;
@@ -8593,7 +8613,6 @@ function drawPoster(canvas, opts) {
   ctx.stroke();
   ctx.restore();
 
-  // ── Typography ──────────────────────────────────────────────────────────────
   const textY = skyY + skyR + 26*sc;
   ctx.textAlign = "center";
   ctx.strokeStyle = S.divColor; ctx.lineWidth = 0.7*sc;
@@ -8630,7 +8649,6 @@ function drawPoster(canvas, opts) {
   ctx.strokeStyle = S.divColor; ctx.lineWidth = 0.7*sc;
   ctx.beginPath(); ctx.moveTo(W*0.2, H-PAD*0.7); ctx.lineTo(W*0.8, H-PAD*0.7); ctx.stroke();
 
-  // Brand watermark
   ctx.fillStyle = S.subColor;
   ctx.font = "italic " + (7*sc) + "px Georgia,serif";
   ctx.textAlign = "center";
@@ -8638,7 +8656,6 @@ function drawPoster(canvas, opts) {
   ctx.fillText("thedaywe.com", W/2, H - PAD*0.35);
   ctx.globalAlpha = 1.0;
 
-  // Preview watermark — diagonal text across the poster
   if (watermark) {
     ctx.save();
     ctx.translate(W/2, H/2);
@@ -8666,6 +8683,7 @@ export default function App() {
   const previewRef = useRef(null);
   const animRef    = useRef(null);
 
+  // Core design state
   const [step,          setStep]         = useState(0);
   const [styleName,     setStyleName]    = useState("classic");
   const [shape,         setShape]        = useState("circle");
@@ -8694,8 +8712,18 @@ export default function App() {
   const [ownerInput,    setOwnerInput]   = useState("");
   const [currency,      setCurrency]     = useState("NZD");
 
-  // Order flow state
-  const [orderStep,     setOrderStep]    = useState(null); // null | "choose" | "details" | "paying" | "complete"
+  // Journey selection — "direct" | "code" | "print"
+  const [journey,       setJourney]      = useState(null);
+
+  // Code redemption state
+  const [codeInput,     setCodeInput]    = useState("");
+  const [codeError,     setCodeError]    = useState("");
+  const [codeLoading,   setCodeLoading]  = useState(false);
+  const [codeValid,     setCodeValid]    = useState(null); // { code, type } | null
+  const [codeUsed,      setCodeUsed]     = useState(false);
+
+  // Order flow state (for direct/print purchases)
+  const [orderStep,     setOrderStep]    = useState(null);
   const [product,       setProduct]      = useState("digital");
   const [frameColour,   setFrameColour]  = useState("black");
   const [custName,      setCustName]     = useState("");
@@ -8716,11 +8744,10 @@ export default function App() {
   const isDark = S.dark;
   const computedFootnote = useAuto ? autoFootnote(locationName, dateStr) : footnote;
 
-  // Filter products based on detected country
   const availableProducts = useMemo(() => {
     return Object.fromEntries(
       Object.entries(PRODUCTS).filter(([k, p]) => {
-        if (!p.framed) return true; // always show digital + unframed
+        if (!p.framed) return true;
         return FRAMED_COUNTRIES.includes(
           Object.entries(CURRENCIES).find(([,c]) => c.countries.includes(
             Object.entries({NZD:["NZ"],AUD:["AU"],GBP:["GB"],USD:["US","CA"],EUR:["DE","FR","IT","ES","NL","BE","AT","IE","PT","FI","GR"]}
@@ -8736,8 +8763,8 @@ export default function App() {
     stars, styleName, shape, title, footnote: computedFootnote,
     locationName, dateStr, timeStr, lat, lon,
     showLines, showGrid, showCoords, showDate, showTime, showFootnote,
-    watermark: !ownerMode
-  }), [stars, styleName, shape, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode]);
+    watermark: !ownerMode && !codeValid
+  }), [stars, styleName, shape, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
 
   const drawFrame = useCallback(() => {
     const canvas = previewRef.current;
@@ -8788,17 +8815,21 @@ export default function App() {
     setLocSearch(""); setLocResults([]); setLocError("");
   }
 
+  function generateCleanPoster(sizeKey) {
+    const off = document.createElement("canvas");
+    const size = PRINT_SIZES[sizeKey || "8x10"];
+    off.width  = size.w;
+    off.height = size.h;
+    const sc = size.w / 800;
+    drawPoster(off, { ...opts, sc, watermark: false });
+    return off.toDataURL("image/png");
+  }
+
   function download() {
     setDownloading(true);
     setTimeout(() => {
       try {
-        const off = document.createElement("canvas");
-        const size = PRINT_SIZES[printSize];
-        off.width  = size.w;
-        off.height = size.h;
-        const sc = size.w / 800;
-        drawPoster(off, { ...opts, sc, watermark: !ownerMode });
-        const dataUrl = off.toDataURL("image/png");
+        const dataUrl = generateCleanPoster(printSize);
         setDownloadUrl(dataUrl);
       } catch(e) {
         alert("Generation failed: " + e.message);
@@ -8807,21 +8838,36 @@ export default function App() {
     }, 100);
   }
 
-  // Generate clean high-res poster data URL
-  function generateCleanPoster(sizeKey) {
-    const off = document.createElement("canvas");
-    const size = PRINT_SIZES[sizeKey || "a4"];
-    off.width  = size.w;
-    off.height = size.h;
-    const sc = size.w / 800;
-    drawPoster(off, { ...opts, sc, watermark: false });
-    return off.toDataURL("image/png");
+  // ── Code validation ──────────────────────────────────────────────────────────
+  async function redeemCode() {
+    const code = codeInput.trim().toUpperCase();
+    if (!code) { setCodeError("Please enter your code."); return; }
+    setCodeLoading(true); setCodeError("");
+    try {
+      const result = await validateCode(code);
+      if (!result) {
+        setCodeError("Invalid or already used code. Please check and try again.");
+      } else {
+        setCodeValid(result);
+        // Mark as used immediately
+        await markCodeUsed(code);
+        setCodeUsed(true);
+        // If physical code, set journey to print
+        if (result.type === "physical") {
+          setJourney("print");
+        }
+        // Move to design step
+        setStep(0);
+      }
+    } catch(e) {
+      setCodeError("Could not validate code. Please try again.");
+    }
+    setCodeLoading(false);
   }
 
-  // Send email via EmailJS
+  // ── Email & Gelato ───────────────────────────────────────────────────────────
   async function sendEmail(templateParams) {
-    const url = "https://api.emailjs.com/api/v1.0/email/send";
-    await fetch(url, {
+    await fetch("https://api.emailjs.com/api/v1.0/email/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -8833,32 +8879,26 @@ export default function App() {
     });
   }
 
-  // Submit order to Gelato
   async function submitToGelato(order, imageDataUrl) {
     const sku = GELATO_SKUS[order.product];
     if (!sku) return;
-
     const nameParts = order.custName.trim().split(" ");
     const firstName = nameParts[0];
     const lastName  = nameParts.slice(1).join(" ") || firstName;
-
-    // Get correct productUid — framed uses colour-specific UIDs
     let productUid;
     if (sku.frame) {
       productUid = sku[order.frameColour] || sku["black"];
     } else {
       productUid = sku.uid;
     }
-
     const countryMap = {
-      "New Zealand":"NZ", "Australia":"AU", "United Kingdom":"GB",
-      "United States":"US", "Canada":"CA", "Germany":"DE",
-      "France":"FR", "Netherlands":"NL", "Ireland":"IE",
-      "Italy":"IT", "Spain":"ES", "Belgium":"BE",
-      "Austria":"AT", "Portugal":"PT", "Finland":"FI", "Greece":"GR"
+      "New Zealand":"NZ","Australia":"AU","United Kingdom":"GB",
+      "United States":"US","Canada":"CA","Germany":"DE",
+      "France":"FR","Netherlands":"NL","Ireland":"IE",
+      "Italy":"IT","Spain":"ES","Belgium":"BE",
+      "Austria":"AT","Portugal":"PT","Finland":"FI","Greece":"GR"
     };
     const countryCode = countryMap[order.custCountry] || "NZ";
-
     const body = {
       orderType: "order",
       orderReferenceId: order.orderNumber,
@@ -8872,38 +8912,26 @@ export default function App() {
       }],
       shipmentMethodUid: "standard",
       shippingAddress: {
-        firstName,
-        lastName,
+        firstName, lastName,
         addressLine1: order.custAddress,
-        city:         order.custCity,
-        postCode:     order.custPostcode || "",
-        country:      countryCode,
-        email:        order.custEmail,
+        city: order.custCity,
+        postCode: order.custPostcode || "",
+        country: countryCode,
+        email: order.custEmail,
       }
     };
-
     const res = await fetch("https://order.gelatoapis.com/v4/orders", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-KEY": GELATO_KEY,
-      },
+      headers: { "Content-Type": "application/json", "X-API-KEY": GELATO_KEY },
       body: JSON.stringify(body)
     });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Gelato error:", err);
-    }
+    if (!res.ok) { const err = await res.text(); console.error("Gelato error:", err); }
   }
 
-  // Load Stripe and open payment
+  // ── Stripe payment ───────────────────────────────────────────────────────────
   async function processPayment(orderNum) {
-    const prod = PRODUCTS[product];
-    setOrderLoading(true);
-    setOrderError("");
+    setOrderLoading(true); setOrderError("");
     try {
-      // Load Stripe.js dynamically
       if (!window.Stripe) {
         await new Promise((res, rej) => {
           const s = document.createElement("script");
@@ -8913,32 +8941,18 @@ export default function App() {
         });
       }
       const stripe = window.Stripe(STRIPE_KEY);
-
-      // Create a simple Stripe Checkout session via Payment Links approach
-      // We use stripe.redirectToCheckout with a price — for now show payment form inline
-      // Since we can't create sessions client-side, we'll use Stripe Payment Element approach
-      // For simplicity: redirect to a Stripe Payment Link (user sets these up in Stripe dashboard)
-      // Best client-side approach: collect card with Stripe.js
-
       const elements = stripe.elements();
       const cardElement = elements.create("card", {
-        style: {
-          base: { fontFamily:"Georgia, serif", fontSize:"14px", color:"#0f0f0f" }
-        }
+        style: { base: { fontFamily:"Georgia, serif", fontSize:"14px", color:"#0f0f0f" } }
       });
-
-      // Store for use in confirmPayment
       window._stripeInstance = stripe;
       window._cardElement    = cardElement;
       window._orderNum       = orderNum;
-
       setOrderStep("paying");
-      // Mount after state update
       setTimeout(() => {
         const mount = document.getElementById("stripe-card-element");
         if (mount) cardElement.mount("#stripe-card-element");
       }, 100);
-
     } catch(e) {
       setOrderError("Payment setup failed. Please try again.");
     }
@@ -8946,67 +8960,45 @@ export default function App() {
   }
 
   async function confirmPayment() {
-    setOrderLoading(true);
-    setOrderError("");
+    setOrderLoading(true); setOrderError("");
     try {
-      const stripe = window._stripeInstance;
-      const card   = window._cardElement;
+      const stripe   = window._stripeInstance;
+      const card     = window._cardElement;
       const orderNum = window._orderNum;
-      const prod   = PRODUCTS[product];
-      const price  = prod.prices[currency] ?? prod.prices.NZD;
+      const prod     = PRODUCTS[product];
 
-      // Create payment method
       const { paymentMethod, error } = await stripe.createPaymentMethod({
-        type: "card",
-        card,
+        type: "card", card,
         billing_details: { name: custName, email: custEmail }
       });
 
-      if (error) {
-        setOrderError(error.message);
-        setOrderLoading(false);
-        return;
-      }
+      if (error) { setOrderError(error.message); setOrderLoading(false); return; }
 
-      // In production you'd confirm via your backend
-      // For now we record the order and fulfil digitally
-      const sizeKey = prod.size || "a4";
-      const imageUrl = prod.physical ? generateCleanPoster(sizeKey) : generateCleanPoster("a4");
+      const sizeKey  = prod.size || "8x10";
+      const imageUrl = generateCleanPoster(sizeKey);
 
       const order = {
-        orderNumber: orderNum,
-        product, frameColour,
+        orderNumber: orderNum, product, frameColour,
         custName, custEmail, custAddress, custCity, custPostcode, custCountry, custNotes,
-        price: formatPrice(prod, currency),
-        currency,
+        price: formatPrice(prod, currency), currency,
         date: new Date().toISOString(),
         paymentMethodId: paymentMethod.id,
         style: styleName, title, locationName, dateStr, timeStr,
       };
 
-      // Save to local log
       saveOrderLog(order);
 
-      // Send confirmation email to customer
       await sendEmail({
-        to_name:      custName,
-        to_email:     custEmail,
+        to_name: custName, to_email: custEmail,
         order_number: orderNum,
-        product:      prod.label + " " + prod.sub,
-        price:        "$" + prod.price + " NZD",
-        style:        styleName,
-        title:        title,
-        location:     locationName,
-        date:         dateStr,
-        notes:        custNotes || "None",
-        owner_email:  OWNER_EMAIL,
-        is_digital:   !prod.physical ? "yes" : "no",
+        product: prod.label + " " + prod.sub,
+        price: formatPrice(prod, currency),
+        style: styleName, title, location: locationName, date: dateStr,
+        notes: custNotes || "None", owner_email: OWNER_EMAIL,
+        is_digital: !prod.physical ? "yes" : "no",
       });
 
-      // If physical, submit to Gelato
-      if (prod.physical) {
-        await submitToGelato(order, imageUrl);
-      }
+      if (prod.physical) await submitToGelato(order, imageUrl);
 
       setCompletedOrder({ ...order, imageUrl: prod.physical ? null : imageUrl });
       setOrderStep("complete");
@@ -9017,7 +9009,7 @@ export default function App() {
     setOrderLoading(false);
   }
 
-  // UI theme — always clean/light base
+  // ── Styles ───────────────────────────────────────────────────────────────────
   const appBg   = isDark ? "#0c0c0c" : "#fafafa";
   const cardBg  = isDark ? "#161616" : "#ffffff";
   const cardBdr = isDark ? "#252525" : "#efefef";
@@ -9055,6 +9047,10 @@ export default function App() {
     transition:"opacity 0.2s"
   };
 
+  // Determine if user can download — must have paid, redeemed code, or be owner
+  const canDownload = ownerMode || codeValid || (completedOrder && !PRODUCTS[completedOrder?.product]?.physical);
+  const isPhysicalJourney = journey === "print" || (codeValid && codeValid.type === "physical");
+
   return (
     <div style={{ minHeight:"100vh", background:appBg, fontFamily:"'Georgia', serif", color:txtMain, display:"flex", flexDirection:"column", transition:"background 0.3s" }}>
       <style>{`
@@ -9069,13 +9065,16 @@ export default function App() {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.96)", zIndex:1000,
           display:"flex", flexDirection:"column", alignItems:"center", overflowY:"auto", padding:"24px 16px" }}>
           <div style={{ textAlign:"center", color:"#fff", maxWidth:"480px", width:"100%", marginBottom:"20px" }}>
-            <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:"#2a9a2a", marginBottom:"12px" }}>✓ Owner Mode — Clean File</div>
-            <p style={{ fontSize:"22px", fontStyle:"italic", fontWeight:"300", margin:"0 0 20px" }}>The Day We</p>
-            <a href={downloadUrl} download={`thedaywe-owner-${printSize}.png`}
+            <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:"#2a9a2a", marginBottom:"12px" }}>
+              {ownerMode ? "✓ Owner Mode — Clean File" : "✓ Your Star Map is Ready"}
+            </div>
+            <p style={{ fontSize:"22px", fontStyle:"italic", fontWeight:"300", fontFamily:"'Cormorant Garamond', Georgia, serif", margin:"0 0 4px" }}>the day we.</p>
+            <p style={{ fontSize:"10px", letterSpacing:"0.3em", color:"#666", margin:"0 0 20px" }}>MADE TO BE REMEMBERED</p>
+            <a href={downloadUrl} download={`thedaywe-${printSize}.png`}
               style={{ display:"inline-block", padding:"14px 36px", borderRadius:"9px",
                 background:"#ffffff", color:"#000", fontSize:"11px", fontWeight:"600",
                 textDecoration:"none", marginBottom:"12px", letterSpacing:"0.14em", textTransform:"uppercase" }}>
-              ↓ Download Clean File
+              ↓ Download Your Star Map
             </a>
             <div style={{ fontSize:"10px", color:"#2a9a2a", marginBottom:"16px" }}>
               No watermark · {PRINT_SIZES[printSize].w}×{PRINT_SIZES[printSize].h}px · 300dpi
@@ -9097,21 +9096,26 @@ export default function App() {
 
       {/* Header */}
       <div style={{ textAlign:"center", padding:"28px 16px 20px", borderBottom:"1px solid "+cardBdr, background:cardBg, position:"relative" }}>
-        <div style={{ fontSize:"9px", letterSpacing:"0.4em", textTransform:"uppercase", color:txtSub, marginBottom:"8px" }}>Personalised Star Maps</div>
-        <h1 style={{ fontSize:"clamp(26px,5vw,38px)", fontWeight:"300", margin:"0 0 4px", letterSpacing:"0.04em", fontStyle:"italic", lineHeight:1.1 }}>
-          The Day We
+        {/* Brand logo */}
+        <p style={{ fontSize:"9px", letterSpacing:"0.35em", textTransform:"uppercase", color:txtSub, margin:"0 0 6px", fontFamily:"'Georgia', serif" }}>
+          MADE TO BE REMEMBERED
+        </p>
+        <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"300", margin:"0 0 2px", letterSpacing:"0.04em",
+          fontStyle:"italic", lineHeight:1.1, fontFamily:"'Cormorant Garamond', Georgia, serif" }}>
+          the day we.
         </h1>
+
         {/* Currency selector */}
         <div style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", left:"12px" }}>
           <select value={currency} onChange={e => setCurrency(e.target.value)}
             style={{ fontSize:"10px", color:txtSub, background:"transparent", border:"1px solid "+cardBdr,
-              borderRadius:"5px", padding:"3px 6px", cursor:"pointer", fontFamily:"'Georgia', serif",
-              outline:"none" }}>
+              borderRadius:"5px", padding:"3px 6px", cursor:"pointer", fontFamily:"'Georgia', serif", outline:"none" }}>
             {Object.entries(CURRENCIES).map(([code, c]) => (
               <option key={code} value={code}>{c.symbol} {code}</option>
             ))}
           </select>
         </div>
+
         {/* Owner mode toggle */}
         <div style={{ position:"absolute", bottom:"8px", right:"12px" }}>
           {ownerMode ? (
@@ -9131,317 +9135,298 @@ export default function App() {
             </button>
           )}
         </div>
+
+        {/* Code badge if redeemed */}
+        {codeValid && (
+          <div style={{ fontSize:"9px", letterSpacing:"0.15em", color:"#2a9a2a", marginTop:"6px" }}>
+            ✓ Code redeemed · {codeValid.type === "physical" ? "Print order" : "Digital download"} unlocked
+          </div>
+        )}
       </div>
 
-      {/* Step nav */}
-      <div style={{ display:"flex", borderBottom:"1px solid "+cardBdr, background:cardBg }}>
-        {STEPS.map((s, i) => (
-          <button key={s} onClick={() => setStep(i)}
-            style={{ flex:1, padding:"12px 4px", background:"transparent", border:"none", cursor:"pointer",
-              borderBottom:"1.5px solid "+(step===i ? accent : "transparent"),
-              color: step===i ? accent : i<step ? (isDark?"#4a8a4a":"#2a7a2a") : txtSub,
-              fontSize:"9px", letterSpacing:"0.14em", textTransform:"uppercase", fontFamily:"'Georgia', serif",
-              transition:"color 0.2s" }}>
-            {i < step ? "✓ " : ""}{s}
+      {/* Journey selector — shown before any customisation begins if no journey selected and no code */}
+      {!journey && !codeValid && !ownerMode && step === 0 && orderStep === null && !completedOrder && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"32px 16px" }}>
+          <p style={{ textAlign:"center", fontSize:"11px", color:txtSub, letterSpacing:"0.15em", textTransform:"uppercase", marginBottom:"24px" }}>
+            How would you like to proceed?
+          </p>
+
+          {/* Option 1: Buy digital */}
+          <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
+            style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
+              border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
+              fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+            <div style={{ fontSize:"14px", marginBottom:"4px" }}>Buy Digital Download</div>
+            <div style={{ fontSize:"10px", color:txtSub }}>Customise your star map and download instantly · {formatPrice(PRODUCTS.digital, currency)}</div>
           </button>
-        ))}
-      </div>
 
-      <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
+          {/* Option 2: Etsy code */}
+          <button onClick={() => setJourney("code")}
+            style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
+              border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
+              fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+            <div style={{ fontSize:"14px", marginBottom:"4px" }}>I have a code</div>
+            <div style={{ fontSize:"10px", color:txtSub }}>Purchased on Etsy or have a gift code? Enter it here to unlock your design</div>
+          </button>
 
-        {/* STEP 0: DESIGN */}
-        {step === 0 && (
-          <div>
-            <div style={card}>
-              <span style={{ ...lbl, marginBottom:"14px" }}>Choose a Style</span>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"8px", marginBottom:"4px" }}>
-                {Object.entries(STYLES).map(([k, st]) => (
-                  <button key={k} onClick={() => setStyleName(k)}
-                    style={{ padding:"0", borderRadius:"10px", cursor:"pointer", overflow:"hidden",
-                      border:"2px solid "+(styleName===k ? accent : cardBdr),
-                      background:"transparent", transition:"all 0.15s",
-                      boxShadow: styleName===k ? "0 2px 12px rgba(0,0,0,0.12)" : "none" }}>
-                    {/* Poster mini-preview */}
-                    <div style={{ background:st.posterBg, padding:"10px 8px 8px", display:"flex", flexDirection:"column", alignItems:"center", gap:"5px" }}>
-                      <div style={{ width:"32px", height:"32px", borderRadius:"50%", background:st.skyBg,
-                        border:"1px solid "+st.border, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <div style={{ width:"3px", height:"3px", borderRadius:"50%", background:"rgba("+st.starRGB+",0.9)" }}/>
-                      </div>
-                      <div style={{ width:"60%", height:"1px", background:st.divColor, opacity:0.5 }}/>
-                      <div style={{ width:"70%", height:"2px", borderRadius:"1px", background:st.textColor, opacity:0.3 }}/>
-                    </div>
-                    <div style={{ padding:"6px 4px", fontSize:"10px", fontFamily:"'Georgia', serif",
-                      color:txtMain, background:cardBg, textAlign:"center", letterSpacing:"0.05em" }}>
-                      {st.label}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button onClick={() => setStep(1)} style={{ ...nextBtn, width:"100%", flex:"none" }}>
-              Next: Set the Moment →
+          {/* Option 3: Physical print */}
+          <button onClick={() => { setJourney("print"); setProduct("unframed_8x10"); }}
+            style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
+              border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
+              fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+            <div style={{ fontSize:"14px", marginBottom:"4px" }}>Order a Physical Print</div>
+            <div style={{ fontSize:"10px", color:txtSub }}>Printed and shipped to your door · from {formatPrice(PRODUCTS.unframed_8x10, currency)}</div>
+          </button>
+        </div>
+      )}
+
+      {/* Code entry screen */}
+      {journey === "code" && !codeValid && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"32px 16px" }}>
+          <div style={card}>
+            <span style={{ ...lbl, marginBottom:"16px" }}>Enter Your Code</span>
+            <p style={{ fontSize:"12px", color:txtSub, lineHeight:"1.7", marginBottom:"20px", margin:"0 0 20px" }}>
+              Check your Etsy order confirmation or the PDF you received. Your unique code is listed there.
+            </p>
+            <input style={{ ...inp, marginBottom:"12px", textTransform:"uppercase", letterSpacing:"0.15em", fontSize:"16px", textAlign:"center" }}
+              type="text" value={codeInput}
+              onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(""); }}
+              onKeyDown={e => { if (e.key === "Enter") redeemCode(); }}
+              placeholder="e.g. TDW-ABC123" />
+            {codeError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px", textAlign:"center" }}>{codeError}</div>}
+            <button onClick={redeemCode} disabled={codeLoading}
+              style={{ ...nextBtn, width:"100%", flex:"none", opacity: codeLoading ? 0.6 : 1 }}>
+              {codeLoading ? "Checking…" : "Unlock My Design →"}
             </button>
           </div>
-        )}
+          <button onClick={() => setJourney(null)}
+            style={{ ...backBtn, width:"100%", flex:"none", marginTop:"4px" }}>
+            ← Back
+          </button>
+        </div>
+      )}
 
-        {/* STEP 1: MOMENT */}
-        {step === 1 && (
-          <div>
-            <div style={card}>
-              <label style={lbl}>Search Location</label>
-              <div style={{ display:"flex", gap:"8px", marginBottom:"6px" }}>
-                <input style={{ ...inp, flex:1 }} type="text" value={locSearch}
-                  onChange={e => setLocSearch(e.target.value)}
-                  onKeyDown={e => { if (e.key==="Enter") { e.preventDefault(); searchLocation(); }}}
-                  placeholder="e.g. Tauranga, New Zealand" />
-                <button onClick={searchLocation} disabled={locLoading}
-                  style={{ padding:"10px 16px", borderRadius:"8px", background:accent, border:"none",
-                    color:accentFg, cursor:"pointer", fontSize:"11px", fontFamily:"'Georgia', serif", whiteSpace:"nowrap", letterSpacing:"0.1em" }}>
-                  {locLoading ? "…" : "Search"}
+      {/* Main design flow — shown when journey is selected OR code is valid */}
+      {(journey === "direct" || journey === "print" || codeValid || ownerMode) && step < 3 && !orderStep && !completedOrder && (
+        <>
+          {/* Step nav */}
+          <div style={{ display:"flex", borderBottom:"1px solid "+cardBdr, background:cardBg }}>
+            {STEPS.map((s, i) => (
+              <button key={s} onClick={() => setStep(i)}
+                style={{ flex:1, padding:"12px 4px", background:"transparent", border:"none", cursor:"pointer",
+                  borderBottom:"1.5px solid "+(step===i ? accent : "transparent"),
+                  color: step===i ? accent : i<step ? (isDark?"#4a8a4a":"#2a7a2a") : txtSub,
+                  fontSize:"9px", letterSpacing:"0.14em", textTransform:"uppercase", fontFamily:"'Georgia', serif",
+                  transition:"color 0.2s" }}>
+                {i < step ? "✓ " : ""}{s}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
+
+            {/* STEP 0: DESIGN */}
+            {step === 0 && (
+              <div>
+                <div style={card}>
+                  <span style={{ ...lbl, marginBottom:"14px" }}>Choose a Style</span>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"8px", marginBottom:"4px" }}>
+                    {Object.entries(STYLES).map(([k, st]) => (
+                      <button key={k} onClick={() => setStyleName(k)}
+                        style={{ padding:"0", borderRadius:"10px", cursor:"pointer", overflow:"hidden",
+                          border:"2px solid "+(styleName===k ? accent : cardBdr),
+                          background:"transparent", transition:"all 0.15s",
+                          boxShadow: styleName===k ? "0 2px 12px rgba(0,0,0,0.12)" : "none" }}>
+                        <div style={{ background:st.posterBg, padding:"10px 8px 8px", display:"flex", flexDirection:"column", alignItems:"center", gap:"5px" }}>
+                          <div style={{ width:"32px", height:"32px", borderRadius:"50%", background:st.skyBg,
+                            border:"1px solid "+st.border, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                            <div style={{ width:"3px", height:"3px", borderRadius:"50%", background:"rgba("+st.starRGB+",0.9)" }}/>
+                          </div>
+                          <div style={{ width:"60%", height:"1px", background:st.divColor, opacity:0.5 }}/>
+                          <div style={{ width:"70%", height:"2px", borderRadius:"1px", background:st.textColor, opacity:0.3 }}/>
+                        </div>
+                        <div style={{ padding:"6px 4px", fontSize:"10px", fontFamily:"'Georgia', serif",
+                          color:txtMain, background:cardBg, textAlign:"center", letterSpacing:"0.05em" }}>
+                          {st.label}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={() => setStep(1)} style={{ ...nextBtn, width:"100%", flex:"none" }}>
+                  Next: Set the Moment →
                 </button>
               </div>
-              {locError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"8px" }}>{locError}</div>}
-              {locResults.length > 0 && (
-                <div style={{ border:"1px solid "+cardBdr, borderRadius:"8px", overflow:"hidden", marginBottom:"12px" }}>
-                  {locResults.map((r, i) => (
-                    <div key={i} onClick={() => pickLocation(r)}
-                      style={{ padding:"10px 12px", cursor:"pointer", fontSize:"12px", color:txtMain,
-                        borderBottom: i<locResults.length-1 ? "1px solid "+cardBdr : "none",
-                        background:inpBg }}
-                      onMouseEnter={e => e.currentTarget.style.opacity = "0.7"}
-                      onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
-                      {r.name}
+            )}
+
+            {/* STEP 1: MOMENT */}
+            {step === 1 && (
+              <div>
+                <div style={card}>
+                  <label style={lbl}>Search Location</label>
+                  <div style={{ display:"flex", gap:"8px", marginBottom:"6px" }}>
+                    <input style={{ ...inp, flex:1 }} type="text" value={locSearch}
+                      onChange={e => setLocSearch(e.target.value)}
+                      onKeyDown={e => { if (e.key==="Enter") { e.preventDefault(); searchLocation(); }}}
+                      placeholder="e.g. Tauranga, New Zealand" />
+                    <button onClick={searchLocation} disabled={locLoading}
+                      style={{ padding:"10px 16px", borderRadius:"8px", background:accent, border:"none",
+                        color:accentFg, cursor:"pointer", fontSize:"11px", fontFamily:"'Georgia', serif", whiteSpace:"nowrap", letterSpacing:"0.1em" }}>
+                      {locLoading ? "…" : "Search"}
+                    </button>
+                  </div>
+                  {locError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"8px" }}>{locError}</div>}
+                  {locResults.length > 0 && (
+                    <div style={{ borderRadius:"8px", overflow:"hidden", border:"1px solid "+cardBdr, marginBottom:"10px" }}>
+                      {locResults.map((r, i) => (
+                        <button key={i} onClick={() => pickLocation(r)}
+                          style={{ width:"100%", padding:"10px 14px", background: i%2===0 ? inpBg : cardBg,
+                            border:"none", cursor:"pointer", textAlign:"left", fontSize:"12px", color:txtMain,
+                            fontFamily:"'Georgia', serif", borderBottom: i<locResults.length-1 ? "1px solid "+cardBdr : "none" }}>
+                          {r.name}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", marginBottom:"10px" }}>
+                    <div>
+                      <label style={lbl}>Latitude</label>
+                      <input style={inp} type="text" value={latStr} onChange={e => setLatStr(e.target.value)} placeholder="51.5074" />
+                    </div>
+                    <div>
+                      <label style={lbl}>Longitude</label>
+                      <input style={inp} type="text" value={lonStr} onChange={e => setLonStr(e.target.value)} placeholder="-0.1278" />
+                    </div>
+                  </div>
+                  <label style={lbl}>Date</label>
+                  <input style={{ ...inp, marginBottom:"10px" }} type="date" value={dateStr} onChange={e => setDateStr(e.target.value)} />
+                  <label style={lbl}>Time</label>
+                  <input style={inp} type="time" value={timeStr} onChange={e => setTimeStr(e.target.value)} />
                 </div>
-              )}
-
-              <label style={lbl}>Location Label on Poster</label>
-              <input style={{ ...inp, marginBottom:"12px" }} type="text" value={locationName}
-                onChange={e => setLocationName(e.target.value)} placeholder="e.g. Tauranga, New Zealand" />
-
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px", marginBottom:"12px" }}>
-                <div><label style={lbl}>Latitude</label>
-                  <input style={inp} type="number" value={latStr} onChange={e => setLatStr(e.target.value)} step="0.0001" /></div>
-                <div><label style={lbl}>Longitude</label>
-                  <input style={inp} type="number" value={lonStr} onChange={e => setLonStr(e.target.value)} step="0.0001" /></div>
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(0)} style={backBtn}>← Back</button>
+                  <button onClick={() => setStep(2)} style={nextBtn}>Next: Add Text →</button>
+                </div>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px" }}>
-                <div><label style={lbl}>Date</label>
-                  <input style={inp} type="date" value={dateStr} onChange={e => setDateStr(e.target.value)} /></div>
-                <div><label style={lbl}>Time (local)</label>
-                  <input style={inp} type="time" value={timeStr} onChange={e => setTimeStr(e.target.value)} /></div>
+            )}
+
+            {/* STEP 2: TEXT */}
+            {step === 2 && (
+              <div>
+                <div style={card}>
+                  <label style={lbl}>Title</label>
+                  <input style={{ ...inp, marginBottom:"10px" }} type="text" value={title}
+                    onChange={e => setTitle(e.target.value)} placeholder="The Night Our Stars Aligned" />
+                  <label style={lbl}>Footnote</label>
+                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"8px" }}>
+                    <input type="checkbox" id="auto-fn" checked={useAuto} onChange={e => setUseAuto(e.target.checked)}
+                      style={{ accentColor: accent }} />
+                    <label htmlFor="auto-fn" style={{ ...lbl, marginBottom:0, cursor:"pointer" }}>Auto-generate</label>
+                  </div>
+                  {!useAuto && (
+                    <input style={{ ...inp, marginBottom:"10px" }} type="text" value={footnote}
+                      onChange={e => setFootnote(e.target.value)} placeholder="Custom footnote…" />
+                  )}
+                  {useAuto && (
+                    <div style={{ fontSize:"11px", color:txtSub, fontStyle:"italic", marginBottom:"10px" }}>
+                      "{computedFootnote}"
+                    </div>
+                  )}
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"4px" }}>
+                    {[["showLines","Constellations"],["showGrid","Grid"],["showCoords","Coordinates"],
+                      ["showDate","Date"],["showTime","Time"],["showFootnote","Footnote"]].map(([key, label]) => (
+                      <label key={key} style={{ display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:txtSub, cursor:"pointer", fontFamily:"'Georgia', serif" }}>
+                        <input type="checkbox"
+                          checked={key==="showLines"?showLines:key==="showGrid"?showGrid:key==="showCoords"?showCoords:key==="showDate"?showDate:key==="showTime"?showTime:showFootnote}
+                          onChange={e => {
+                            const v = e.target.checked;
+                            if(key==="showLines") setShowLines(v);
+                            else if(key==="showGrid") setShowGrid(v);
+                            else if(key==="showCoords") setShowCoords(v);
+                            else if(key==="showDate") setShowDate(v);
+                            else if(key==="showTime") setShowTime(v);
+                            else setShowFootnote(v);
+                          }}
+                          style={{ accentColor: accent }} />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(1)} style={backBtn}>← Back</button>
+                  <button onClick={() => setStep(3)} style={nextBtn}>Preview →</button>
+                </div>
               </div>
-            </div>
-            <div style={{ display:"flex", gap:"8px" }}>
-              <button onClick={() => setStep(0)} style={backBtn}>← Back</button>
-              <button onClick={() => setStep(2)} style={nextBtn}>Next: Add Text →</button>
-            </div>
+            )}
           </div>
-        )}
+        </>
+      )}
 
-        {/* STEP 2: TEXT */}
-        {step === 2 && (
-          <div>
-            <div style={card}>
-              <label style={lbl}>Title</label>
-              <input style={{ ...inp, marginBottom:"16px" }} type="text" value={title}
-                onChange={e => setTitle(e.target.value)} placeholder="The Night Our Stars Aligned" />
-
-              <label style={lbl}>Footnote Text</label>
-              <label style={{ display:"flex", alignItems:"flex-start", gap:"8px", fontSize:"12px", color:txtSub, marginBottom:"8px", cursor:"pointer", lineHeight:"1.5" }}>
-                <input type="checkbox" checked={useAuto} onChange={e => setUseAuto(e.target.checked)}
-                  style={{ accentColor:accent, marginTop:"2px", flexShrink:0 }} />
-                Auto-generate
-              </label>
-              <input style={{ ...inp, marginBottom:"4px" }} type="text"
-                value={useAuto ? autoFootnote(locationName, dateStr) : footnote}
-                onChange={e => { setUseAuto(false); setFootnote(e.target.value); }}
-                placeholder="Stars above ... on the ..." />
-            </div>
-
-            <div style={card}>
-              <span style={{ ...lbl, marginBottom:"12px" }}>Map Options</span>
-              {[
-                ["Constellation Lines", showLines, setShowLines],
-                ["Grid Lines", showGrid, setShowGrid],
-              ].map(([label, val, set]) => (
-                <label key={label} style={{ display:"flex", alignItems:"center", gap:"10px", cursor:"pointer", fontSize:"12px", color:txtMain, marginBottom:"10px", fontFamily:"'Georgia', serif" }}>
-                  <input type="checkbox" checked={val} onChange={e => set(e.target.checked)}
-                    style={{ accentColor:accent, width:"14px", height:"14px" }} />
-                  {label}
-                </label>
-              ))}
-            </div>
-
-            <div style={card}>
-              <span style={{ ...lbl, marginBottom:"12px" }}>Show / Hide Text Elements</span>
-              {[
-                ["Date", showDate, setShowDate],
-                ["Time", showTime, setShowTime],
-                ["Coordinates (Lat/Long)", showCoords, setShowCoords],
-                ["Footnote", showFootnote, setShowFootnote],
-              ].map(([label, val, set]) => (
-                <label key={label} style={{ display:"flex", alignItems:"center", gap:"10px", cursor:"pointer", fontSize:"12px", color:txtMain, marginBottom:"10px", fontFamily:"'Georgia', serif" }}>
-                  <input type="checkbox" checked={val} onChange={e => set(e.target.checked)}
-                    style={{ accentColor:accent, width:"14px", height:"14px" }} />
-                  {label}
-                </label>
-              ))}
-            </div>
-
-            <div style={{ display:"flex", gap:"8px" }}>
-              <button onClick={() => setStep(1)} style={backBtn}>← Back</button>
-              <button onClick={() => setStep(3)} style={nextBtn}>Preview & Download →</button>
-            </div>
+      {/* STEP 3: PREVIEW */}
+      {(journey === "direct" || journey === "print" || journey === "code" || codeValid || ownerMode) && step === 3 && !orderStep && !completedOrder && (
+        <>
+          <div style={{ display:"flex", borderBottom:"1px solid "+cardBdr, background:cardBg }}>
+            {STEPS.map((s, i) => (
+              <button key={s} onClick={() => setStep(i)}
+                style={{ flex:1, padding:"12px 4px", background:"transparent", border:"none", cursor:"pointer",
+                  borderBottom:"1.5px solid "+(step===i ? accent : "transparent"),
+                  color: step===i ? accent : i<step ? (isDark?"#4a8a4a":"#2a7a2a") : txtSub,
+                  fontSize:"9px", letterSpacing:"0.14em", textTransform:"uppercase", fontFamily:"'Georgia', serif" }}>
+                {i < step ? "✓ " : ""}{s}
+              </button>
+            ))}
           </div>
-        )}
-
-        {/* STEP 3: PREVIEW + ORDER */}
-        {step === 3 && !orderStep && (
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"14px" }}>
-
+          <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
             {/* Canvas preview */}
-            <div style={{ background:isDark?"#0a0a0a":"#e8e8e8", padding:"16px", borderRadius:"14px",
-              boxShadow:"0 12px 40px rgba(0,0,0,0.15)", maxWidth:"320px", width:"100%" }}>
-              <canvas ref={previewRef} width={320} height={480}
-                style={{ display:"block", width:"100%", borderRadius:"6px" }} />
-            </div>
-
-            <div style={{ fontSize:"10px", color:txtSub, letterSpacing:"0.1em" }}>
-              {stars.filter(s => s.alt > 0).length} stars visible · watermarked preview
+            <div style={{ position:"relative", marginBottom:"10px" }}>
+              <canvas ref={previewRef} width={400} height={520}
+                style={{ width:"100%", borderRadius:"12px", display:"block",
+                  boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} />
+              <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.1em" }}>
+                {stars.filter(s => s.alt > 0).length} stars visible
+                {(ownerMode || codeValid) ? " · clean preview" : " · watermarked preview"}
+              </div>
             </div>
 
             {/* Quick edit */}
-            <div style={{ ...card, width:"100%", maxWidth:"320px" }}>
+            <div style={{ ...card, marginBottom:"10px" }}>
               <span style={{ ...lbl, marginBottom:"10px" }}>Quick Edit</span>
               <input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
                 onChange={e => setTitle(e.target.value)} placeholder="Title" />
-              <input style={{ ...inp, marginBottom:"12px" }} type="text" value={locationName}
-                onChange={e => setLocationName(e.target.value)} placeholder="Location" />
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"5px" }}>
-                {Object.entries(STYLES).map(([k, st]) => (
-                  <button key={k} onClick={() => setStyleName(k)}
-                    style={{ padding:"0", borderRadius:"7px", cursor:"pointer", overflow:"hidden",
-                      border:"2px solid "+(styleName===k ? accent : cardBdr),
-                      background:"transparent", transition:"all 0.15s" }}>
-                    <div style={{ background:st.posterBg, padding:"6px", display:"flex", justifyContent:"center" }}>
-                      <div style={{ width:"20px", height:"20px", borderRadius:"50%", background:st.skyBg, border:"1px solid "+st.border }}/>
-                    </div>
-                    <div style={{ padding:"4px 2px", fontSize:"9px", fontFamily:"'Georgia', serif",
-                      color:txtMain, background:cardBg, textAlign:"center" }}>
-                      {st.label}
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <input style={{ ...inp }} type="text" value={locationName}
+                onChange={e => setLocationName(e.target.value)} placeholder="Location name" />
             </div>
 
-            {/* Owner mode download */}
-            {ownerMode && (
-              <div style={{ ...card, width:"100%", maxWidth:"320px", borderColor:"#2a9a2a" }}>
-                <span style={{ ...lbl, marginBottom:"10px", color:"#2a9a2a" }}>Owner — Clean Download</span>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"6px", marginBottom:"10px" }}>
-                  {Object.entries(PRINT_SIZES).map(([k, sz]) => (
-                    <button key={k} onClick={() => setPrintSize(k)}
-                      style={{ padding:"10px 6px", borderRadius:"8px", cursor:"pointer",
-                        border:"1.5px solid "+(printSize===k ? "#2a9a2a" : cardBdr),
-                        background: printSize===k ? "#f0fff0" : inpBg,
-                        color:txtMain, fontFamily:"'Georgia', serif", textAlign:"center" }}>
-                      <div style={{ fontSize:"12px", marginBottom:"2px" }}>{sz.label}</div>
-                      <div style={{ fontSize:"9px", color:txtSub }}>{sz.sub}</div>
-                    </button>
-                  ))}
-                </div>
-                <button onClick={download} disabled={downloading}
-                  style={{ width:"100%", padding:"12px", borderRadius:"8px",
-                    background:"#2a9a2a", border:"none", color:"#fff",
-                    fontSize:"10px", letterSpacing:"0.15em", textTransform:"uppercase",
-                    cursor:"pointer", fontFamily:"'Georgia', serif" }}>
-                  {downloading ? "Generating…" : "↓ Download Clean File"}
-                </button>
-              </div>
-            )}
-
-            {/* Order button */}
-            <button onClick={() => setOrderStep("choose")}
-              style={{ width:"100%", maxWidth:"320px", padding:"18px", borderRadius:"9px",
-                background:accent, border:"none", color:accentFg,
-                fontSize:"11px", letterSpacing:"0.18em", textTransform:"uppercase",
-                cursor:"pointer", fontFamily:"'Georgia', serif" }}>
-              Order This Map →
-            </button>
-
-            <button onClick={() => setStep(0)}
-              style={{ background:"transparent", border:"1px solid "+cardBdr, borderRadius:"7px",
-                padding:"9px 24px", color:txtSub, fontSize:"10px", cursor:"pointer",
-                fontFamily:"'Georgia', serif", letterSpacing:"0.1em" }}>
-              ← Start Over
-            </button>
-          </div>
-        )}
-
-        {/* ORDER: CHOOSE PRODUCT */}
-        {step === 3 && orderStep === "choose" && (
-          <div>
-            <div style={{ ...card }}>
-              <span style={{ ...lbl, marginBottom:"16px" }}>Choose your format</span>
-              {Object.entries(availableProducts).map(([k, p]) => (
-                <button key={k} onClick={() => setProduct(k)}
-                  style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px",
-                    border:"1.5px solid "+(product===k ? accent : cardBdr),
-                    background: product===k ? (isDark?"#1c1c1c":"#f8f8f8") : inpBg,
-                    color:txtMain, fontFamily:"'Georgia', serif", transition:"all 0.15s",
-                    display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <div style={{ textAlign:"left" }}>
-                    <div style={{ fontSize:"13px", marginBottom:"2px" }}>{p.label}</div>
-                    <div style={{ fontSize:"10px", color:txtSub }}>{p.sub}</div>
-                  </div>
-                  <div style={{ fontSize:"16px", fontWeight:"300" }}>{formatPrice(p, currency)}</div>
-                </button>
-              ))}
-            </div>
-
-            {/* Frame colour if framed product */}
-            {PRODUCTS[product]?.framed && (
+            {/* Download / Order section */}
+            {(ownerMode || codeValid) && !isPhysicalJourney && (
+              // Digital download unlocked
               <div style={card}>
-                <span style={{ ...lbl, marginBottom:"12px" }}>Frame Colour</span>
-                <div style={{ display:"flex", gap:"8px" }}>
-                  {FRAME_COLOURS.map(c => (
-                    <button key={c} onClick={() => setFrameColour(c)}
-                      style={{ flex:1, padding:"10px", borderRadius:"8px", cursor:"pointer",
-                        border:"1.5px solid "+(frameColour===c ? accent : cardBdr),
-                        background: frameColour===c ? (isDark?"#1c1c1c":"#f5f5f5") : inpBg,
-                        color:txtMain, fontSize:"11px", fontFamily:"'Georgia', serif",
-                        textTransform:"capitalize" }}>
-                      {c}
-                    </button>
+                <span style={{ ...lbl, marginBottom:"12px" }}>Download Your Star Map</span>
+                <label style={lbl}>Print Size</label>
+                <select value={printSize} onChange={e => setPrintSize(e.target.value)}
+                  style={{ ...inp, marginBottom:"14px" }}>
+                  {Object.entries(PRINT_SIZES).map(([k,s]) => (
+                    <option key={k} value={k}>{s.label} ({s.sub}) — {s.w}×{s.h}px</option>
                   ))}
-                </div>
+                </select>
+                <button onClick={download} disabled={downloading}
+                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:downloading?0.6:1 }}>
+                  {downloading ? "Generating…" : "↓ Download High-Res PNG"}
+                </button>
               </div>
             )}
 
-            <div style={{ display:"flex", gap:"8px" }}>
-              <button onClick={() => setOrderStep(null)} style={backBtn}>← Back</button>
-              <button onClick={() => setOrderStep("details")} style={nextBtn}>
-              Continue → {formatPrice(PRODUCTS[product], currency)}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ORDER: CUSTOMER DETAILS */}
-        {step === 3 && orderStep === "details" && (
-          <div>
-            <div style={card}>
-              <span style={{ ...lbl, marginBottom:"14px" }}>Your Details</span>
-              <label style={lbl}>Full Name</label>
-              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custName}
-                onChange={e => setCustName(e.target.value)} placeholder="Jane Smith" />
-              <label style={lbl}>Email Address</label>
-              <input style={{ ...inp, marginBottom:"10px" }} type="email" value={custEmail}
-                onChange={e => setCustEmail(e.target.value)} placeholder="jane@email.com" />
-              {PRODUCTS[product]?.physical && (<>
+            {/* Physical print — submit to Gelato */}
+            {isPhysicalJourney && codeValid && (
+              <div style={card}>
+                <span style={{ ...lbl, marginBottom:"14px" }}>Submit Your Print Order</span>
+                <label style={lbl}>Your Name</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custName}
+                  onChange={e => setCustName(e.target.value)} placeholder="Jane Smith" />
+                <label style={lbl}>Email</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="email" value={custEmail}
+                  onChange={e => setCustEmail(e.target.value)} placeholder="jane@email.com" />
                 <label style={lbl}>Delivery Address</label>
                 <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custAddress}
                   onChange={e => setCustAddress(e.target.value)} placeholder="123 Main Street" />
@@ -9454,72 +9439,255 @@ export default function App() {
                 <label style={lbl}>Country</label>
                 <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
                   onChange={e => setCustCountry(e.target.value)} />
-              </>)}
-              <label style={lbl}>Special Instructions (optional)</label>
-              <input style={{ ...inp }} type="text" value={custNotes}
-                onChange={e => setCustNotes(e.target.value)} placeholder="e.g. It's a gift — please don't include pricing" />
-            </div>
+                <label style={lbl}>Special Instructions (optional)</label>
+                <input style={{ ...inp, marginBottom:"14px" }} type="text" value={custNotes}
+                  onChange={e => setCustNotes(e.target.value)} placeholder="e.g. It's a gift — please don't include pricing" />
+                {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}>{orderError}</div>}
+                <button onClick={async () => {
+                  if (!custName || !custEmail || !custAddress || !custCity) {
+                    setOrderError("Please fill in all required fields."); return;
+                  }
+                  setOrderLoading(true); setOrderError("");
+                  try {
+                    const orderNum = generateOrderNumber();
+                    const imageUrl = generateCleanPoster("8x10");
+                    const order = {
+                      orderNumber: orderNum, product: "unframed_8x10", frameColour,
+                      custName, custEmail, custAddress, custCity, custPostcode, custCountry, custNotes,
+                      date: new Date().toISOString(), style: styleName, title, locationName, dateStr, timeStr,
+                    };
+                    await submitToGelato(order, imageUrl);
+                    await sendEmail({
+                      to_name: custName, to_email: custEmail,
+                      order_number: orderNum,
+                      product: "Unframed Print 8×10\"",
+                      style: styleName, title, location: locationName, date: dateStr,
+                      notes: custNotes || "None", owner_email: OWNER_EMAIL, is_digital: "no",
+                    });
+                    setCompletedOrder({ ...order, physical: true });
+                    setOrderStep("complete");
+                  } catch(e) {
+                    setOrderError("Something went wrong: " + e.message);
+                  }
+                  setOrderLoading(false);
+                }} disabled={orderLoading}
+                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:orderLoading?0.6:1 }}>
+                  {orderLoading ? "Submitting…" : "Submit Print Order →"}
+                </button>
+              </div>
+            )}
 
-            <div style={{ display:"flex", gap:"8px" }}>
-              <button onClick={() => setOrderStep("choose")} style={backBtn}>← Back</button>
-              <button onClick={() => {
-                if (!custName || !custEmail) { setOrderError("Please enter your name and email."); return; }
-                setOrderError("");
-                const num = generateOrderNumber();
-                setOrderNumber(num);
-                processPayment(num);
-              }} style={nextBtn}>
-                Continue to Payment →
-              </button>
-            </div>
-            {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginTop:"8px", textAlign:"center" }}>{orderError}</div>}
+            {/* Direct purchase — buy now */}
+            {journey === "direct" && !codeValid && (
+              <div>
+                <div style={card}>
+                  <span style={{ ...lbl, marginBottom:"16px" }}>Choose your format</span>
+                  {Object.entries(availableProducts).map(([k, p]) => (
+                    <button key={k} onClick={() => setProduct(k)}
+                      style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px",
+                        border:"1.5px solid "+(product===k ? accent : cardBdr),
+                        background: product===k ? (isDark?"#1c1c1c":"#f8f8f8") : inpBg,
+                        color:txtMain, fontFamily:"'Georgia', serif", transition:"all 0.15s",
+                        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                      <div style={{ textAlign:"left" }}>
+                        <div style={{ fontSize:"13px", marginBottom:"2px" }}>{p.label}</div>
+                        <div style={{ fontSize:"10px", color:txtSub }}>{p.sub}</div>
+                      </div>
+                      <div style={{ fontSize:"16px", fontWeight:"300" }}>{formatPrice(p, currency)}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {PRODUCTS[product]?.framed && (
+                  <div style={card}>
+                    <span style={{ ...lbl, marginBottom:"12px" }}>Frame Colour</span>
+                    <div style={{ display:"flex", gap:"8px" }}>
+                      {FRAME_COLOURS.map(c => (
+                        <button key={c} onClick={() => setFrameColour(c)}
+                          style={{ flex:1, padding:"10px", borderRadius:"8px", cursor:"pointer",
+                            border:"1.5px solid "+(frameColour===c ? accent : cardBdr),
+                            background: frameColour===c ? (isDark?"#1c1c1c":"#f5f5f5") : inpBg,
+                            color:txtMain, fontSize:"11px", fontFamily:"'Georgia', serif", textTransform:"capitalize" }}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(2)} style={backBtn}>← Back</button>
+                  <button onClick={() => {
+                    const num = generateOrderNumber();
+                    setOrderNumber(num);
+                    setOrderStep("details");
+                  }} style={nextBtn}>
+                    Continue → {formatPrice(PRODUCTS[product], currency)}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Physical purchase — buy now */}
+            {journey === "print" && !codeValid && (
+              <div>
+                <div style={card}>
+                  <span style={{ ...lbl, marginBottom:"16px" }}>Choose your format</span>
+                  {Object.entries(availableProducts).filter(([k]) => PRODUCTS[k]?.physical).map(([k, p]) => (
+                    <button key={k} onClick={() => setProduct(k)}
+                      style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px",
+                        border:"1.5px solid "+(product===k ? accent : cardBdr),
+                        background: product===k ? (isDark?"#1c1c1c":"#f8f8f8") : inpBg,
+                        color:txtMain, fontFamily:"'Georgia', serif", transition:"all 0.15s",
+                        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                      <div style={{ textAlign:"left" }}>
+                        <div style={{ fontSize:"13px", marginBottom:"2px" }}>{p.label}</div>
+                        <div style={{ fontSize:"10px", color:txtSub }}>{p.sub}</div>
+                      </div>
+                      <div style={{ fontSize:"16px", fontWeight:"300" }}>{formatPrice(p, currency)}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {PRODUCTS[product]?.framed && (
+                  <div style={card}>
+                    <span style={{ ...lbl, marginBottom:"12px" }}>Frame Colour</span>
+                    <div style={{ display:"flex", gap:"8px" }}>
+                      {FRAME_COLOURS.map(c => (
+                        <button key={c} onClick={() => setFrameColour(c)}
+                          style={{ flex:1, padding:"10px", borderRadius:"8px", cursor:"pointer",
+                            border:"1.5px solid "+(frameColour===c ? accent : cardBdr),
+                            background: frameColour===c ? (isDark?"#1c1c1c":"#f5f5f5") : inpBg,
+                            color:txtMain, fontSize:"11px", fontFamily:"'Georgia', serif", textTransform:"capitalize" }}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(2)} style={backBtn}>← Back</button>
+                  <button onClick={() => {
+                    const num = generateOrderNumber();
+                    setOrderNumber(num);
+                    setOrderStep("details");
+                  }} style={nextBtn}>
+                    Continue → {formatPrice(PRODUCTS[product], currency)}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Owner download */}
+            {ownerMode && (
+              <div style={card}>
+                <span style={{ ...lbl, marginBottom:"12px" }}>Owner Download</span>
+                <select value={printSize} onChange={e => setPrintSize(e.target.value)}
+                  style={{ ...inp, marginBottom:"14px" }}>
+                  {Object.entries(PRINT_SIZES).map(([k,s]) => (
+                    <option key={k} value={k}>{s.label} ({s.sub}) — {s.w}×{s.h}px</option>
+                  ))}
+                </select>
+                <button onClick={download} disabled={downloading}
+                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:downloading?0.6:1 }}>
+                  {downloading ? "Generating…" : "↓ Download Clean File (No Watermark)"}
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </>
+      )}
 
-        {/* ORDER: PAYMENT */}
-        {step === 3 && orderStep === "paying" && (
-          <div>
-            <div style={card}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
-                <span style={{ ...lbl, marginBottom:0 }}>Payment</span>
-                <span style={{ fontSize:"16px", fontWeight:"300", color:txtMain }}>{formatPrice(PRODUCTS[product], currency)}</span>
-              </div>
-              <div style={{ fontSize:"11px", color:txtSub, marginBottom:"16px" }}>
-                {PRODUCTS[product]?.label} · {PRODUCTS[product]?.sub}
-              </div>
-              <label style={lbl}>Card Details</label>
-              <div id="stripe-card-element"
-                style={{ padding:"12px", border:"1px solid "+inpBdr, borderRadius:"8px",
-                  background:inpBg, marginBottom:"16px", minHeight:"40px" }} />
-              {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}>{orderError}</div>}
-              <button onClick={confirmPayment} disabled={orderLoading}
-                style={{ width:"100%", padding:"16px", borderRadius:"9px",
-                  background:orderLoading ? txtSub : accent, border:"none", color:accentFg,
-                  fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
-                  cursor:orderLoading?"wait":"pointer", fontFamily:"'Georgia', serif" }}>
-                {orderLoading ? "Processing…" : `Pay ${formatPrice(PRODUCTS[product], currency)}`}
-              </button>
-              <div style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"10px" }}>
-                Secured by Stripe · Your card details are never stored
-              </div>
-            </div>
-            <button onClick={() => setOrderStep("details")} style={{ ...backBtn, width:"100%", marginTop:"4px" }}>← Back</button>
+      {/* ORDER: CUSTOMER DETAILS */}
+      {orderStep === "details" && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
+          <div style={card}>
+            <span style={{ ...lbl, marginBottom:"14px" }}>Your Details</span>
+            <label style={lbl}>Full Name</label>
+            <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custName}
+              onChange={e => setCustName(e.target.value)} placeholder="Jane Smith" />
+            <label style={lbl}>Email Address</label>
+            <input style={{ ...inp, marginBottom:"10px" }} type="email" value={custEmail}
+              onChange={e => setCustEmail(e.target.value)} placeholder="jane@email.com" />
+            {PRODUCTS[product]?.physical && (<>
+              <label style={lbl}>Delivery Address</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custAddress}
+                onChange={e => setCustAddress(e.target.value)} placeholder="123 Main Street" />
+              <label style={lbl}>City</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCity}
+                onChange={e => setCustCity(e.target.value)} placeholder="Auckland" />
+              <label style={lbl}>Postcode</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custPostcode}
+                onChange={e => setCustPostcode(e.target.value)} placeholder="1010" />
+              <label style={lbl}>Country</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
+                onChange={e => setCustCountry(e.target.value)} />
+            </>)}
+            <label style={lbl}>Special Instructions (optional)</label>
+            <input style={{ ...inp }} type="text" value={custNotes}
+              onChange={e => setCustNotes(e.target.value)} placeholder="e.g. It's a gift — please don't include pricing" />
           </div>
-        )}
+          <div style={{ display:"flex", gap:"8px" }}>
+            <button onClick={() => setOrderStep(null)} style={backBtn}>← Back</button>
+            <button onClick={() => {
+              if (!custName || !custEmail) { setOrderError("Please enter your name and email."); return; }
+              setOrderError("");
+              processPayment(orderNumber);
+            }} style={nextBtn}>
+              Continue to Payment →
+            </button>
+          </div>
+          {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginTop:"8px", textAlign:"center" }}>{orderError}</div>}
+        </div>
+      )}
 
-        {/* ORDER: COMPLETE */}
-        {step === 3 && orderStep === "complete" && completedOrder && (
+      {/* ORDER: PAYMENT */}
+      {orderStep === "paying" && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
+          <div style={card}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
+              <span style={{ ...lbl, marginBottom:0 }}>Payment</span>
+              <span style={{ fontSize:"16px", fontWeight:"300", color:txtMain }}>{formatPrice(PRODUCTS[product], currency)}</span>
+            </div>
+            <div style={{ fontSize:"11px", color:txtSub, marginBottom:"16px" }}>
+              {PRODUCTS[product]?.label} · {PRODUCTS[product]?.sub}
+            </div>
+            <label style={lbl}>Card Details</label>
+            <div id="stripe-card-element"
+              style={{ padding:"12px", border:"1px solid "+inpBdr, borderRadius:"8px",
+                background:inpBg, marginBottom:"16px", minHeight:"40px" }} />
+            {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}>{orderError}</div>}
+            <button onClick={confirmPayment} disabled={orderLoading}
+              style={{ width:"100%", padding:"16px", borderRadius:"9px",
+                background:orderLoading ? txtSub : accent, border:"none", color:accentFg,
+                fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
+                cursor:orderLoading?"wait":"pointer", fontFamily:"'Georgia', serif" }}>
+              {orderLoading ? "Processing…" : `Pay ${formatPrice(PRODUCTS[product], currency)}`}
+            </button>
+            <div style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"10px" }}>
+              Secured by Stripe · Your card details are never stored
+            </div>
+          </div>
+          <button onClick={() => setOrderStep("details")} style={{ ...backBtn, width:"100%", marginTop:"4px" }}>← Back</button>
+        </div>
+      )}
+
+      {/* ORDER: COMPLETE */}
+      {(orderStep === "complete" || completedOrder) && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"16px", textAlign:"center" }}>
             <div style={{ fontSize:"32px" }}>✨</div>
             <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub }}>Order Confirmed</div>
-            <h2 style={{ fontSize:"22px", fontWeight:"300", fontStyle:"italic", margin:0 }}>Thank you{custName ? ", "+custName.split(" ")[0] : ""}!</h2>
+            <h2 style={{ fontSize:"22px", fontWeight:"300", fontStyle:"italic", margin:0, fontFamily:"'Cormorant Garamond', Georgia, serif" }}>
+              Thank you{custName ? ", "+custName.split(" ")[0] : ""}!
+            </h2>
             <div style={{ fontSize:"11px", color:txtSub, lineHeight:"1.8" }}>
-              Order <strong>{completedOrder.orderNumber}</strong><br/>
-              A confirmation has been sent to <strong>{completedOrder.custEmail}</strong>
+              Order <strong>{completedOrder?.orderNumber || orderNumber}</strong><br/>
+              A confirmation has been sent to <strong>{completedOrder?.custEmail || custEmail}</strong>
             </div>
 
-            {/* Digital download */}
-            {!PRODUCTS[product]?.physical && completedOrder.imageUrl && (
+            {completedOrder && !completedOrder.physical && completedOrder.imageUrl && (
               <div style={{ width:"100%", maxWidth:"320px" }}>
                 <div style={{ fontSize:"10px", color:txtSub, marginBottom:"10px", letterSpacing:"0.1em" }}>
                   Your high-res file is ready — no watermark
@@ -9536,27 +9704,29 @@ export default function App() {
               </div>
             )}
 
-            {/* Physical order confirmation */}
-            {PRODUCTS[product]?.physical && (
+            {completedOrder?.physical && (
               <div style={{ ...card, width:"100%", maxWidth:"320px", textAlign:"left" }}>
                 <div style={{ fontSize:"12px", color:txtMain, lineHeight:"2" }}>
-                  <div>📦 Your print is being prepared</div>
+                  <div>                  📦 Your print is being prepared</div>
                   <div>🖨️ Printed and shipped within 3–5 days</div>
                   <div>📧 Tracking info will be emailed to you</div>
                 </div>
               </div>
             )}
 
-            <button onClick={() => { setOrderStep(null); setCompletedOrder(null); setStep(0); }}
+            <button onClick={() => {
+              setOrderStep(null); setCompletedOrder(null); setStep(0);
+              setJourney(null); setCodeValid(null); setCodeInput(""); setCodeUsed(false);
+            }}
               style={{ background:"transparent", border:"1px solid "+cardBdr, borderRadius:"7px",
                 padding:"9px 24px", color:txtSub, fontSize:"10px", cursor:"pointer",
                 fontFamily:"'Georgia', serif", letterSpacing:"0.1em" }}>
               Create Another Map
             </button>
           </div>
-        )}
+        </div>
+      )}
 
-      </div>
     </div>
   );
 }
