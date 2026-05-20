@@ -8655,23 +8655,25 @@ function drawPoster(canvas, opts) {
 
   if (title) {
     ctx.fillStyle = S.textColor;
-    ctx.font = "italic " + (17*sc) + "px Georgia,serif";
+    ctx.font = "italic " + (17*sc) + "px 'Cormorant Garamond', Georgia, serif";
     ctx.fillText(title, W/2, ty); ty += 24*sc;
   }
   if (locationName) {
     ctx.fillStyle = S.textColor;
-    ctx.font = "bold " + (9*sc) + "px Georgia,serif";
+    ctx.font = "500 " + (8.5*sc) + "px 'Inter', sans-serif";
     ctx.fillText(locationName.toUpperCase(), W/2, ty); ty += 14*sc;
   }
   if (showDate && dateStr) {
     const [y,m,d] = dateStr.split("-").map(Number);
     const dateText = ordinal(d) + " " + MONTHS[m-1] + " " + y;
-    ctx.fillStyle = S.subColor; ctx.font = (7.5*sc) + "px Georgia,serif";
+    ctx.fillStyle = S.subColor;
+    ctx.font = "300 " + (7*sc) + "px 'Inter', sans-serif";
     ctx.fillText(dateText + (showTime && timeStr ? " at " + timeStr : ""), W/2, ty); ty += 13*sc;
   }
   if (showCoords) {
-    ctx.fillStyle = S.subColor; ctx.font = (7*sc) + "px Georgia,serif";
-    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = S.subColor;
+    ctx.font = "300 " + (6.5*sc) + "px 'Inter', sans-serif";
+    ctx.globalAlpha = 0.6;
     ctx.fillText(fmtCoords(lat, lon), W/2, ty);
     ctx.globalAlpha = 1.0;
     ty += 14*sc;
@@ -8681,9 +8683,9 @@ function drawPoster(canvas, opts) {
   ctx.beginPath(); ctx.moveTo(W*0.2, H-PAD*0.7); ctx.lineTo(W*0.8, H-PAD*0.7); ctx.stroke();
 
   ctx.fillStyle = S.subColor;
-  ctx.font = "italic " + (7*sc) + "px Georgia,serif";
+  ctx.font = "300 " + (6.5*sc) + "px 'Inter', sans-serif";
   ctx.textAlign = "center";
-  ctx.globalAlpha = 0.55;
+  ctx.globalAlpha = 0.45;
   ctx.fillText("thedaywe.com", W/2, H - PAD*0.35);
   ctx.globalAlpha = 1.0;
 
@@ -8695,11 +8697,11 @@ function drawPoster(canvas, opts) {
     const wmColor = S.dark ? "#ffffff" : "#000000";
     const lines = [-H*0.3, -H*0.05, H*0.2];
     lines.forEach(offset => {
-      ctx.font = "bold " + (18*sc) + "px Georgia,serif";
+      ctx.font = "bold " + (18*sc) + "px 'Inter', sans-serif";
       ctx.globalAlpha = S.dark ? 0.18 : 0.13;
       ctx.fillStyle = wmColor;
       ctx.fillText("PREVIEW — thedaywe.com", 0, offset);
-      ctx.font = "bold " + (13*sc) + "px Georgia,serif";
+      ctx.font = "bold " + (13*sc) + "px 'Inter', sans-serif";
       ctx.globalAlpha = S.dark ? 0.12 : 0.08;
       ctx.fillText("NOT FOR PRINT USE", 0, offset + 22*sc);
     });
@@ -8801,7 +8803,7 @@ export default function App() {
     stars, styleName, shape, title, footnote: computedFootnote,
     locationName, dateStr, timeStr, lat, lon,
     showLines, showGrid, showCoords, showDate, showTime,
-    watermark: !ownerMode && !codeValid
+    watermark: !ownerMode && !codeValid && !sent
   }), [stars, styleName, shape, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
 
   const drawFrame = useCallback(() => {
@@ -8816,6 +8818,13 @@ export default function App() {
 
   useEffect(() => {
     fetchUserCountry().then(country => setCurrency(detectCurrency(country)));
+    // Preload fonts so canvas renders them correctly
+    const fonts = [
+      new FontFace("Cormorant Garamond", "url(https://fonts.gstatic.com/s/cormorantgaramond/v22/co3YmX5slCNuHLi8bLeY9MK7whWMhyjornFLsS6V7w.woff2)", { style:"italic", weight:"300" }),
+      new FontFace("Inter", "url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)", { weight:"300" }),
+      new FontFace("Inter", "url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)", { weight:"500" }),
+    ];
+    fonts.forEach(f => f.load().then(loaded => document.fonts.add(loaded)).catch(() => {}));
   }, []);
 
   useEffect(() => {
@@ -9062,12 +9071,12 @@ export default function App() {
   const inp = {
     width:"100%", padding:"11px 14px", borderRadius:"8px", fontSize:"13px",
     background:inpBg, border:"1px solid "+inpBdr, color:inpClr,
-    outline:"none", fontFamily:"'Georgia', serif", colorScheme:isDark?"dark":"light",
+    outline:"none", fontFamily:"'Inter', sans-serif", colorScheme:isDark?"dark":"light",
     transition:"border-color 0.2s"
   };
   const lbl = {
     fontSize:"9px", letterSpacing:"0.18em", textTransform:"uppercase",
-    color:txtSub, display:"block", marginBottom:"7px", fontFamily:"'Georgia', serif"
+    color:txtSub, display:"block", marginBottom:"7px", fontFamily:"'Inter', sans-serif"
   };
   const card = {
     background:cardBg, border:"1px solid "+cardBdr,
@@ -9095,7 +9104,7 @@ export default function App() {
         * { box-sizing:border-box }
         input:focus { border-color: ${accent} !important; }
         button:active { opacity:0.75; }
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
       `}</style>
 
       {/* Owner download overlay */}
@@ -9439,14 +9448,10 @@ export default function App() {
             {/* Download / Order section — code unlock flow */}
             {codeValid && !isPhysicalJourney && !showWarning && (
               <div style={card}>
-                <span style={{ ...lbl, marginBottom:"12px" }}>Ready to get your star map?</span>
-                <label style={lbl}>Print Size</label>
-                <select value={printSize} onChange={e => setPrintSize(e.target.value)}
-                  style={{ ...inp, marginBottom:"16px" }}>
-                  {Object.entries(PRINT_SIZES).map(([k,s]) => (
-                    <option key={k} value={k}>{s.label} ({s.sub})</option>
-                  ))}
-                </select>
+                <span style={{ ...lbl, marginBottom:"8px" }}>Ready to get your star map?</span>
+                <p style={{ fontSize:"11px", color:txtSub, lineHeight:"1.7", margin:"0 0 16px" }}>
+                  You'll receive all print sizes in one download — 8×10" and 12×16" included.
+                </p>
                 <button onClick={() => setShowWarning(true)}
                   style={{ ...nextBtn, width:"100%", flex:"none" }}>
                   Continue →
@@ -9479,18 +9484,45 @@ export default function App() {
                   if (!custNameInput || !custEmailInput) { setSendError("Please enter your name and email."); return; }
                   setSending(true); setSendError("");
                   try {
-                    const imageUrl = generateCleanPoster(printSize);
-                    const publicUrl = await uploadToCloudinary(imageUrl);
+                    // Load JSZip
+                    if (!window.JSZip) {
+                      await new Promise((res, rej) => {
+                        const s = document.createElement("script");
+                        s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                        s.onload = res; s.onerror = rej;
+                        document.head.appendChild(s);
+                      });
+                    }
+                    const zip = new window.JSZip();
+                    // Generate all sizes
+                    for (const [key, size] of Object.entries(PRINT_SIZES)) {
+                      const dataUrl = generateCleanPoster(key);
+                      const base64 = dataUrl.split(",")[1];
+                      zip.file(`thedaywe-starmap-${size.label.replace(/[^a-z0-9]/gi,"-")}.png`, base64, { base64: true });
+                    }
+                    // Create zip blob and upload
+                    const zipBlob = await zip.generateAsync({ type: "blob" });
+                    const zipFile = new File([zipBlob], "thedaywe-starmap.zip", { type: "application/zip" });
+                    const form = new FormData();
+                    form.append("file", zipFile);
+                    form.append("upload_preset", "thedaywe_maps");
+                    form.append("resource_type", "raw");
+                    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+                      method: "POST", body: form
+                    });
+                    const data = await r.json();
+                    if (!data.secure_url) throw new Error("Upload failed");
+                    const zipUrl = data.secure_url;
                     await sendEmail({
                       to_name: custNameInput,
                       to_email: custEmailInput,
                       order_number: codeValid.code,
-                      product: "Digital Star Map — " + PRINT_SIZES[printSize].label,
+                      product: "Digital Star Map — all sizes included",
                       style: styleName, title, location: locationName, date: dateStr,
-                      notes: "Download link: " + publicUrl,
+                      notes: "",
                       owner_email: OWNER_EMAIL,
                       is_digital: "yes",
-                      download_url: publicUrl,
+                      download_url: zipUrl,
                     });
                     await markCodeUsed(codeValid.code);
                     setSentToEmail(custEmailInput);
