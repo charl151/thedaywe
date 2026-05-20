@@ -268,8 +268,6 @@ const PRINT_SIZES = {
 };
 
 // ── Business config ──────────────────────────────────────────────────────────
-const RESEND_API_KEY   = "re_QJPcwLJC_FijRAsGYBrkCFX69v2RcWmPi";
-const FROM_EMAIL       = "orders@thedaywe.com";
 const STRIPE_KEY       = "pk_test_51TYcCcLm3wkyrLhBNL36KIRIsx9Nq64jtUbT5XGMEgSoaqDUHK5Iy2zdZ24xC244m5AEPd8kZUGVEmKBLHzedXI200TgGXDHkQ";
 const GELATO_KEY       = "bf6b497d-a24d-4020-a395-89d520be0d27-3a553e6a-11d0-4431-b23e-2ca3c9144346:982872e3-93cc-45be-a349-2d25087cc72e";
 const OWNER_EMAIL      = "thedaywe@gmail.com";
@@ -8451,63 +8449,13 @@ async function uploadPdfToCloudinary(pdfBlob, filename) {
 
 // Send email via Resend with beautiful HTML
 async function sendResendEmail({ toName, toEmail, orderNumber, isDigital, isPhysical, downloadUrls, title, locationName, dateStr, styleName }) {
-  const firstName = toName.split(" ")[0];
-
-  const digitalSection = isDigital && downloadUrls ? `
-    <div style="margin:32px 0;text-align:center;">
-      <p style="font-size:13px;color:#555;margin-bottom:20px;">Your print-ready files are ready to download. Each PDF is sized for professional printing.</p>
-      ${Object.entries(downloadUrls).map(([key, url]) => {
-        const labels = { "8x10": '8×10" (20×25 cm)', "12x16": '12×16" (30×40 cm)' };
-        return `<a href="${url}" style="display:inline-block;margin:6px 8px;padding:14px 28px;background:#1a1a1a;color:#ffffff;text-decoration:none;border-radius:8px;font-size:12px;letter-spacing:0.1em;font-family:Georgia,serif;">
-          ↓ Download ${labels[key] || key} PDF
-        </a>`;
-      }).join("")}
-      <p style="font-size:11px;color:#999;margin-top:16px;">Files are hosted securely — links do not expire.</p>
-    </div>` : "";
-
-  const physicalSection = isPhysical ? `
-    <div style="margin:32px 0;padding:20px;background:#f8f8f8;border-radius:8px;">
-      <p style="margin:0 0 8px;font-size:13px;color:#333;">🖨️ Your print is being prepared</p>
-      <p style="margin:0 0 8px;font-size:13px;color:#333;">📦 Printed and shipped within 3–5 business days</p>
-      <p style="margin:0;font-size:13px;color:#333;">📧 Tracking info will be emailed to you separately</p>
-    </div>` : "";
-
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"/></head>
-<body style="margin:0;padding:0;background:#f4f4f0;font-family:Georgia,serif;">
-  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:32px;margin-bottom:32px;">
-    <div style="background:#1a1a1a;padding:40px 32px;text-align:center;">
-      <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#888;">The Day We</p>
-      <h1 style="margin:0;font-size:28px;font-weight:300;font-style:italic;color:#ffffff;">Your Star Map is Ready</h1>
-    </div>
-    <div style="padding:40px 32px;">
-      <p style="font-size:15px;color:#333;margin:0 0 8px;">Hi ${firstName},</p>
-      <p style="font-size:13px;color:#555;line-height:1.8;margin:0 0 24px;">Thank you for your order. Your personalised star map${title ? ` — <em>${title}</em>` : ""} has been created just for you${locationName ? `, capturing the sky over ${locationName}` : ""}${dateStr ? ` on ${dateStr}` : ""}.</p>
-      ${digitalSection}
-      ${physicalSection}
-      <hr style="border:none;border-top:1px solid #eee;margin:32px 0;"/>
-      <p style="font-size:10px;color:#999;text-align:center;letter-spacing:0.1em;">Order ${orderNumber} · thedaywe.com</p>
-      <p style="font-size:11px;color:#aaa;text-align:center;">Any questions? Reply to this email or contact <a href="mailto:thedayweprints@gmail.com" style="color:#aaa;">thedayweprints@gmail.com</a></p>
-    </div>
-  </div>
-</body></html>`;
-
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await fetch("/api/send-email", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
-      from: `The Day We <${FROM_EMAIL}>`,
-      to: [toEmail],
-      bcc: [OWNER_EMAIL],
-      subject: `Your Star Map is Ready — Order ${orderNumber}`,
-      html,
-    })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ toName, toEmail, orderNumber, isDigital, isPhysical, downloadUrls, title, locationName, dateStr, styleName }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error("Resend error: " + JSON.stringify(data));
+  if (!res.ok) throw new Error("Email error: " + JSON.stringify(data));
   return data;
 }
 
