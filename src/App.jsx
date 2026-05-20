@@ -263,8 +263,8 @@ const STYLES = {
 
 // Print sizes at 300dpi
 const PRINT_SIZES = {
-  "8x10":  { label:'8×10"',  sub:"20×25cm",  w:2400, h:3200 },
-  "12x16": { label:'12×16"', sub:"30×40cm",  w:3600, h:5000 },
+  "8x10":  { label:'8×10"',  sub:"20×25cm",  w:2000, h:2700 },
+  "12x16": { label:'12×16"', sub:"30×40cm",  w:2400, h:3200 },
 };
 
 // ── Business config ──────────────────────────────────────────────────────────
@@ -9448,14 +9448,26 @@ export default function App() {
             {/* Download / Order section — code unlock flow */}
             {codeValid && !isPhysicalJourney && !showWarning && (
               <div style={card}>
-                <span style={{ ...lbl, marginBottom:"8px" }}>Ready to get your star map?</span>
-                <p style={{ fontSize:"11px", color:txtSub, lineHeight:"1.7", margin:"0 0 16px" }}>
-                  You'll receive <strong>1 email</strong> with 2 download links — one for each print size:<br/>
-                  · <strong>8×10"</strong> (20×25cm) — perfect for a desk or bedside frame<br/>
-                  · <strong>12×16"</strong> (30×40cm) — ideal for a statement wall print
-                </p>
+                <span style={{ ...lbl, marginBottom:"12px" }}>Choose your print size</span>
+                {[
+                  { key:"8x10",  label:'8×10"', sub:"20×25cm — desk, bedside or small frame" },
+                  { key:"12x16", label:'12×16"', sub:"30×40cm — statement wall print" },
+                ].map(s => (
+                  <button key={s.key} onClick={() => setPrintSize(s.key)}
+                    style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer",
+                      marginBottom:"8px", border:"1.5px solid "+(printSize===s.key ? accent : cardBdr),
+                      background: printSize===s.key ? (isDark?"#1c1c1c":"#f8f8f8") : inpBg,
+                      color:txtMain, fontFamily:"'Georgia', serif", transition:"all 0.15s",
+                      display:"flex", justifyContent:"space-between", alignItems:"center", textAlign:"left" }}>
+                    <div>
+                      <div style={{ fontSize:"14px", marginBottom:"2px" }}>{s.label}</div>
+                      <div style={{ fontSize:"10px", color:txtSub }}>{s.sub}</div>
+                    </div>
+                    {printSize===s.key && <div style={{ fontSize:"16px", color:accent }}>✓</div>}
+                  </button>
+                ))}
                 <button onClick={() => setShowWarning(true)}
-                  style={{ ...nextBtn, width:"100%", flex:"none" }}>
+                  style={{ ...nextBtn, width:"100%", flex:"none", marginTop:"8px" }}>
                   Continue →
                 </button>
               </div>
@@ -9486,50 +9498,29 @@ export default function App() {
                   if (!custNameInput || !custEmailInput) { setSendError("Please enter your name and email."); return; }
                   setSending(true); setSendError("");
                   try {
-                    // Load jsPDF
-                    if (!window.jspdf) {
-                      await new Promise((res, rej) => {
-                        const s = document.createElement("script");
-                        s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-                        s.onload = res; s.onerror = rej;
-                        document.head.appendChild(s);
-                      });
-                    }
-                    const { jsPDF } = window.jspdf;
                     const urls = {};
-                    const PDF_DIMS = {
-                      "8x10":  { w: 203.2, h: 254.0, label: "8x10-inch-20x25cm" },
-                      "12x16": { w: 304.8, h: 406.4, label: "12x16-inch-30x40cm" },
-                    };
                     for (const [key, size] of Object.entries(PRINT_SIZES)) {
                       const dataUrl = generateCleanPoster(key);
-                      const dim = PDF_DIMS[key];
-                      const pdf = new jsPDF({
-                        orientation: dim.h > dim.w ? "portrait" : "landscape",
-                        unit: "mm",
-                        format: [dim.w, dim.h],
-                      });
-                      pdf.addImage(dataUrl, "PNG", 0, 0, dim.w, dim.h);
-                      const pdfBlob = pdf.output("blob");
+                      const blob = await (await fetch(dataUrl)).blob();
+                      const sizeName = key === "8x10" ? "8x10-inch-20x25cm" : "12x16-inch-30x40cm";
                       const form = new FormData();
-                      form.append("file", new File([pdfBlob], `thedaywe-starmap-${dim.label}.pdf`, { type:"application/pdf" }));
-                      form.append("upload_preset", "thedaywe_raw");
-                      form.append("resource_type", "raw");
-                      const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+                      form.append("file", new File([blob], `thedaywe-starmap-${sizeName}.png`, { type:"image/png" }));
+                      form.append("upload_preset", "thedaywe_maps");
+                      const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
                         method: "POST", body: form
                       });
                       const data = await r.json();
-                      if (!data.secure_url) throw new Error(`PDF upload failed for ${key}: ` + JSON.stringify(data));
+                      if (!data.secure_url) throw new Error(`Upload failed for ${key}: ` + JSON.stringify(data));
                       urls[key] = data.secure_url;
                     }
                     const downloadLinks = Object.entries(urls)
-                      .map(([k, url]) => `${PRINT_SIZES[k].label} (${PRINT_SIZES[k].sub}) PDF:\n${url}`)
-                      .join("\n\n");
+                      .map(([k, url]) => `${PRINT_SIZES[k].label} (${PRINT_SIZES[k].sub}) — print-ready PDF:\n${url}`)
+                      .join("\n");
                     await sendEmail({
                       to_name: custNameInput,
                       to_email: custEmailInput,
                       order_number: codeValid.code,
-                      product: "Digital Star Map — print-ready PDFs",
+                      product: `Digital Star Map — ${PRINT_SIZES[printSize||"8x10"].label} (${PRINT_SIZES[printSize||"8x10"].sub}) print-ready PDF`,
                       style: styleName, title, location: locationName, date: dateStr,
                       notes: downloadLinks,
                       owner_email: OWNER_EMAIL,
@@ -9567,9 +9558,8 @@ export default function App() {
                 <div style={{ fontSize:"12px", color:txtSub, lineHeight:"2", marginBottom:"20px" }}>
                   Your star map has been sent to<br/>
                   <strong style={{ color:txtMain }}>{sentToEmail}</strong><br/>
-                  You'll find <strong style={{ color:txtMain }}>2 download links</strong> in the email —<br/>
-                  one for each print size. Check your inbox<br/>
-                  (and spam, just in case!)
+                  Your print-ready PDF has been sent —<br/>
+                  check your inbox (and spam, just in case!)
                 </div>
                 <div style={{ fontSize:"11px", color:txtSub, padding:"14px", background:isDark?"#111":"#f8f8f8", borderRadius:"8px", lineHeight:"1.8" }}>
                   Any issues? Email us at<br/>
