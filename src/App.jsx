@@ -8665,9 +8665,9 @@ function drawPoster(canvas, opts) {
   }
   if (showDate && dateStr) {
     const [y,m,d] = dateStr.split("-").map(Number);
-    const dateText = ordinal(d) + " " + MONTHS[m-1].toUpperCase() + " " + y;
+    const dateText = ordinal(d) + " " + MONTHS[m-1] + " " + y;
     ctx.fillStyle = S.subColor; ctx.font = (7.5*sc) + "px Georgia,serif";
-    ctx.fillText(dateText + (showTime && timeStr ? " AT " + timeStr : ""), W/2, ty); ty += 13*sc;
+    ctx.fillText(dateText + (showTime && timeStr ? " at " + timeStr : ""), W/2, ty); ty += 13*sc;
   }
   if (showCoords) {
     ctx.fillStyle = S.subColor; ctx.font = (7*sc) + "px Georgia,serif";
