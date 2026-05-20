@@ -9450,7 +9450,9 @@ export default function App() {
               <div style={card}>
                 <span style={{ ...lbl, marginBottom:"8px" }}>Ready to get your star map?</span>
                 <p style={{ fontSize:"11px", color:txtSub, lineHeight:"1.7", margin:"0 0 16px" }}>
-                  You'll receive all print sizes in one download — 8×10" and 12×16" included.
+                  You'll receive <strong>1 email</strong> with 2 download links — one for each print size:<br/>
+                  · <strong>8×10"</strong> (20×25cm) — perfect for a desk or bedside frame<br/>
+                  · <strong>12×16"</strong> (30×40cm) — ideal for a statement wall print
                 </p>
                 <button onClick={() => setShowWarning(true)}
                   style={{ ...nextBtn, width:"100%", flex:"none" }}>
@@ -9484,45 +9486,55 @@ export default function App() {
                   if (!custNameInput || !custEmailInput) { setSendError("Please enter your name and email."); return; }
                   setSending(true); setSendError("");
                   try {
-                    // Load JSZip
-                    if (!window.JSZip) {
+                    // Load jsPDF
+                    if (!window.jspdf) {
                       await new Promise((res, rej) => {
                         const s = document.createElement("script");
-                        s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                        s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
                         s.onload = res; s.onerror = rej;
                         document.head.appendChild(s);
                       });
                     }
-                    const zip = new window.JSZip();
-                    // Generate all sizes
+                    const { jsPDF } = window.jspdf;
+                    const urls = {};
+                    const PDF_DIMS = {
+                      "8x10":  { w: 203.2, h: 254.0, label: "8x10-inch-20x25cm" },
+                      "12x16": { w: 304.8, h: 406.4, label: "12x16-inch-30x40cm" },
+                    };
                     for (const [key, size] of Object.entries(PRINT_SIZES)) {
                       const dataUrl = generateCleanPoster(key);
-                      const base64 = dataUrl.split(",")[1];
-                      zip.file(`thedaywe-starmap-${size.label.replace(/[^a-z0-9]/gi,"-")}.png`, base64, { base64: true });
+                      const dim = PDF_DIMS[key];
+                      const pdf = new jsPDF({
+                        orientation: dim.h > dim.w ? "portrait" : "landscape",
+                        unit: "mm",
+                        format: [dim.w, dim.h],
+                      });
+                      pdf.addImage(dataUrl, "PNG", 0, 0, dim.w, dim.h);
+                      const pdfBlob = pdf.output("blob");
+                      const form = new FormData();
+                      form.append("file", new File([pdfBlob], `thedaywe-starmap-${dim.label}.pdf`, { type:"application/pdf" }));
+                      form.append("upload_preset", "thedaywe_raw");
+                      form.append("resource_type", "raw");
+                      const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+                        method: "POST", body: form
+                      });
+                      const data = await r.json();
+                      if (!data.secure_url) throw new Error(`PDF upload failed for ${key}: ` + JSON.stringify(data));
+                      urls[key] = data.secure_url;
                     }
-                    // Create zip blob and upload
-                    const zipBlob = await zip.generateAsync({ type: "blob" });
-                    const zipFile = new File([zipBlob], "thedaywe-starmap.zip", { type: "application/zip" });
-                    const form = new FormData();
-                    form.append("file", zipFile);
-                    form.append("upload_preset", "thedaywe_maps");
-                    form.append("resource_type", "raw");
-                    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
-                      method: "POST", body: form
-                    });
-                    const data = await r.json();
-                    if (!data.secure_url) throw new Error("Upload failed");
-                    const zipUrl = data.secure_url;
+                    const downloadLinks = Object.entries(urls)
+                      .map(([k, url]) => `${PRINT_SIZES[k].label} (${PRINT_SIZES[k].sub}) PDF:\n${url}`)
+                      .join("\n\n");
                     await sendEmail({
                       to_name: custNameInput,
                       to_email: custEmailInput,
                       order_number: codeValid.code,
-                      product: "Digital Star Map — all sizes included",
+                      product: "Digital Star Map — print-ready PDFs",
                       style: styleName, title, location: locationName, date: dateStr,
-                      notes: "",
+                      notes: downloadLinks,
                       owner_email: OWNER_EMAIL,
                       is_digital: "yes",
-                      download_url: zipUrl,
+                      download_url: urls["8x10"] || Object.values(urls)[0],
                     });
                     await markCodeUsed(codeValid.code);
                     setSentToEmail(custEmailInput);
@@ -9555,7 +9567,9 @@ export default function App() {
                 <div style={{ fontSize:"12px", color:txtSub, lineHeight:"2", marginBottom:"20px" }}>
                   Your star map has been sent to<br/>
                   <strong style={{ color:txtMain }}>{sentToEmail}</strong><br/>
-                  Check your inbox — it may take a few minutes to arrive.
+                  You'll find <strong style={{ color:txtMain }}>2 download links</strong> in the email —<br/>
+                  one for each print size. Check your inbox<br/>
+                  (and spam, just in case!)
                 </div>
                 <div style={{ fontSize:"11px", color:txtSub, padding:"14px", background:isDark?"#111":"#f8f8f8", borderRadius:"8px", lineHeight:"1.8" }}>
                   Any issues? Email us at<br/>
