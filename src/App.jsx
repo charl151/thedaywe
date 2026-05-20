@@ -268,9 +268,8 @@ const PRINT_SIZES = {
 };
 
 // ── Business config ──────────────────────────────────────────────────────────
-const EMAILJS_SERVICE  = "service_8mbhj8t";
-const EMAILJS_TEMPLATE = "template_ajhkgmf";
-const EMAILJS_KEY      = "QXOKA-I7agQSV90sZ";
+const RESEND_API_KEY   = "re_QJPcwLJC_FijRAsGYBrkCFX69v2RcWmPi";
+const FROM_EMAIL       = "orders@thedaywe.com";
 const STRIPE_KEY       = "pk_test_51TYcCcLm3wkyrLhBNL36KIRIsx9Nq64jtUbT5XGMEgSoaqDUHK5Iy2zdZ24xC244m5AEPd8kZUGVEmKBLHzedXI200TgGXDHkQ";
 const GELATO_KEY       = "bf6b497d-a24d-4020-a395-89d520be0d27-3a553e6a-11d0-4431-b23e-2ca3c9144346:982872e3-93cc-45be-a349-2d25087cc72e";
 const OWNER_EMAIL      = "thedaywe@gmail.com";
@@ -8399,7 +8398,6 @@ const CLOUDINARY_KEY   = "836136218237837";
 const CLOUDINARY_SECRET = "yDz4mHWr3ESoLGHKEt8uDf6A9kE";
 
 async function uploadToCloudinary(dataUrl) {
-  // Convert base64 dataUrl to blob
   const res  = await fetch(dataUrl);
   const blob = await res.blob();
   const form = new FormData();
@@ -8407,12 +8405,110 @@ async function uploadToCloudinary(dataUrl) {
   form.append("upload_preset", "thedaywe_maps");
   form.append("cloud_name", CLOUDINARY_CLOUD);
   const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
-    method: "POST",
-    body: form
+    method: "POST", body: form
   });
   const data = await r.json();
   if (!data.secure_url) throw new Error("Cloudinary upload failed: " + JSON.stringify(data));
   return data.secure_url;
+}
+
+// Load jsPDF dynamically and convert a canvas PNG to a PDF blob
+async function generatePdfBlob(pngDataUrl, sizeKey) {
+  // Dynamically load jsPDF from CDN
+  if (!window.jspdf) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  const { jsPDF } = window.jspdf;
+  // Physical print sizes in mm
+  const mmSizes = {
+    "8x10":  { w: 203.2, h: 254   },
+    "12x16": { w: 304.8, h: 406.4 },
+  };
+  const mm = mmSizes[sizeKey] || mmSizes["8x10"];
+  const pdf = new jsPDF({ orientation: mm.h > mm.w ? "portrait" : "landscape", unit: "mm", format: [mm.w, mm.h] });
+  pdf.addImage(pngDataUrl, "PNG", 0, 0, mm.w, mm.h, undefined, "FAST");
+  return pdf.output("blob");
+}
+
+// Upload PDF blob to Cloudinary raw preset
+async function uploadPdfToCloudinary(pdfBlob, filename) {
+  const form = new FormData();
+  form.append("file", new File([pdfBlob], filename, { type: "application/pdf" }));
+  form.append("upload_preset", "thedaywe_raw");
+  form.append("cloud_name", CLOUDINARY_CLOUD);
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+    method: "POST", body: form
+  });
+  const data = await r.json();
+  if (!data.secure_url) throw new Error("PDF upload failed: " + JSON.stringify(data));
+  return data.secure_url;
+}
+
+// Send email via Resend with beautiful HTML
+async function sendResendEmail({ toName, toEmail, orderNumber, isDigital, isPhysical, downloadUrls, title, locationName, dateStr, styleName }) {
+  const firstName = toName.split(" ")[0];
+
+  const digitalSection = isDigital && downloadUrls ? `
+    <div style="margin:32px 0;text-align:center;">
+      <p style="font-size:13px;color:#555;margin-bottom:20px;">Your print-ready files are ready to download. Each PDF is sized for professional printing.</p>
+      ${Object.entries(downloadUrls).map(([key, url]) => {
+        const labels = { "8x10": '8×10" (20×25 cm)', "12x16": '12×16" (30×40 cm)' };
+        return `<a href="${url}" style="display:inline-block;margin:6px 8px;padding:14px 28px;background:#1a1a1a;color:#ffffff;text-decoration:none;border-radius:8px;font-size:12px;letter-spacing:0.1em;font-family:Georgia,serif;">
+          ↓ Download ${labels[key] || key} PDF
+        </a>`;
+      }).join("")}
+      <p style="font-size:11px;color:#999;margin-top:16px;">Files are hosted securely — links do not expire.</p>
+    </div>` : "";
+
+  const physicalSection = isPhysical ? `
+    <div style="margin:32px 0;padding:20px;background:#f8f8f8;border-radius:8px;">
+      <p style="margin:0 0 8px;font-size:13px;color:#333;">🖨️ Your print is being prepared</p>
+      <p style="margin:0 0 8px;font-size:13px;color:#333;">📦 Printed and shipped within 3–5 business days</p>
+      <p style="margin:0;font-size:13px;color:#333;">📧 Tracking info will be emailed to you separately</p>
+    </div>` : "";
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:Georgia,serif;">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:32px;margin-bottom:32px;">
+    <div style="background:#1a1a1a;padding:40px 32px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#888;">The Day We</p>
+      <h1 style="margin:0;font-size:28px;font-weight:300;font-style:italic;color:#ffffff;">Your Star Map is Ready</h1>
+    </div>
+    <div style="padding:40px 32px;">
+      <p style="font-size:15px;color:#333;margin:0 0 8px;">Hi ${firstName},</p>
+      <p style="font-size:13px;color:#555;line-height:1.8;margin:0 0 24px;">Thank you for your order. Your personalised star map${title ? ` — <em>${title}</em>` : ""} has been created just for you${locationName ? `, capturing the sky over ${locationName}` : ""}${dateStr ? ` on ${dateStr}` : ""}.</p>
+      ${digitalSection}
+      ${physicalSection}
+      <hr style="border:none;border-top:1px solid #eee;margin:32px 0;"/>
+      <p style="font-size:10px;color:#999;text-align:center;letter-spacing:0.1em;">Order ${orderNumber} · thedaywe.com</p>
+      <p style="font-size:11px;color:#aaa;text-align:center;">Any questions? Reply to this email or contact <a href="mailto:thedayweprints@gmail.com" style="color:#aaa;">thedayweprints@gmail.com</a></p>
+    </div>
+  </div>
+</body></html>`;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: `The Day We <${FROM_EMAIL}>`,
+      to: [toEmail],
+      bcc: [OWNER_EMAIL],
+      subject: `Your Star Map is Ready — Order ${orderNumber}`,
+      html,
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error("Resend error: " + JSON.stringify(data));
+  return data;
 }
 
 async function validateCode(code) {
@@ -8761,7 +8857,7 @@ export default function App() {
   const [showGrid,      setShowGrid]     = useState(false);
   const [showCoords,    setShowCoords]   = useState(true);
   const [showDate,      setShowDate]     = useState(true);
-  const [showTime,      setShowTime]     = useState(true);
+  const [showTime,      setShowTime]     = useState(false);
   const [showFootnote,  setShowFootnote] = useState(false);
   const [downloading,   setDownloading]  = useState(false);
   const [downloadUrl,   setDownloadUrl]  = useState(null);
@@ -8938,18 +9034,6 @@ export default function App() {
   }
 
   // ── Email & Gelato ───────────────────────────────────────────────────────────
-  async function sendEmail(templateParams) {
-    await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        service_id:  EMAILJS_SERVICE,
-        template_id: EMAILJS_TEMPLATE,
-        user_id:     EMAILJS_KEY,
-        template_params: templateParams,
-      })
-    });
-  }
 
   async function submitToGelato(order, imageDataUrl) {
     const sku = GELATO_SKUS[order.product];
@@ -9047,7 +9131,6 @@ export default function App() {
       if (error) { setOrderError(error.message); setOrderLoading(false); return; }
 
       const sizeKey  = prod.size || "8x10";
-      const imageUrl = generateCleanPoster(sizeKey);
 
       const order = {
         orderNumber: orderNum, product, frameColour,
@@ -9060,19 +9143,27 @@ export default function App() {
 
       saveOrderLog(order);
 
-      await sendEmail({
-        to_name: custName, to_email: custEmail,
-        order_number: orderNum,
-        product: prod.label + " " + prod.sub,
-        price: formatPrice(prod, currency),
-        style: styleName, title, location: locationName, date: dateStr,
-        notes: custNotes || "None", owner_email: OWNER_EMAIL,
-        is_digital: !prod.physical ? "yes" : "no",
+      let pdfUrls = {};
+      if (!prod.physical) {
+        const pngDataUrl = generateCleanPoster(sizeKey);
+        const pdfBlob = await generatePdfBlob(pngDataUrl, sizeKey);
+        const sizeName = sizeKey === "8x10" ? "8x10-inch-20x25cm" : "12x16-inch-30x40cm";
+        const pdfUrl = await uploadPdfToCloudinary(pdfBlob, `thedaywe-starmap-${sizeName}.pdf`);
+        pdfUrls[sizeKey] = pdfUrl;
+      }
+
+      await sendResendEmail({
+        toName: custName, toEmail: custEmail,
+        orderNumber: orderNum,
+        isDigital: !prod.physical,
+        isPhysical: !!prod.physical,
+        downloadUrls: prod.physical ? null : pdfUrls,
+        title, locationName, dateStr, styleName,
       });
 
-      if (prod.physical) await submitToGelato(order, imageUrl);
+      if (prod.physical) await submitToGelato(order, generateCleanPoster(sizeKey));
 
-      setCompletedOrder({ ...order, imageUrl: prod.physical ? null : imageUrl });
+      setCompletedOrder({ ...order, imageUrl: prod.physical ? null : (pdfUrls[sizeKey] || null) });
       setOrderStep("complete");
 
     } catch(e) {
@@ -9528,34 +9619,22 @@ export default function App() {
                   if (!custNameInput || !custEmailInput) { setSendError("Please enter your name and email."); return; }
                   setSending(true); setSendError("");
                   try {
-                    const urls = {};
-                    for (const [key, size] of Object.entries(PRINT_SIZES)) {
-                      const dataUrl = generateCleanPoster(key);
-                      const blob = await (await fetch(dataUrl)).blob();
+                    const pdfUrls = {};
+                    for (const [key] of Object.entries(PRINT_SIZES)) {
+                      const pngDataUrl = generateCleanPoster(key);
                       const sizeName = key === "8x10" ? "8x10-inch-20x25cm" : "12x16-inch-30x40cm";
-                      const form = new FormData();
-                      form.append("file", new File([blob], `thedaywe-starmap-${sizeName}.png`, { type:"image/png" }));
-                      form.append("upload_preset", "thedaywe_maps");
-                      const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
-                        method: "POST", body: form
-                      });
-                      const data = await r.json();
-                      if (!data.secure_url) throw new Error(`Upload failed for ${key}: ` + JSON.stringify(data));
-                      urls[key] = data.secure_url;
+                      const pdfBlob = await generatePdfBlob(pngDataUrl, key);
+                      const url = await uploadPdfToCloudinary(pdfBlob, `thedaywe-starmap-${sizeName}.pdf`);
+                      pdfUrls[key] = url;
                     }
-                    const downloadLinks = Object.entries(urls)
-                      .map(([k, url]) => `${PRINT_SIZES[k].label} (${PRINT_SIZES[k].sub}) — print-ready PDF:\n${url}`)
-                      .join("\n");
-                    await sendEmail({
-                      to_name: custNameInput,
-                      to_email: custEmailInput,
-                      order_number: codeValid.code,
-                      product: `Digital Star Map — ${PRINT_SIZES[printSize||"8x10"].label} (${PRINT_SIZES[printSize||"8x10"].sub}) print-ready PDF`,
-                      style: styleName, title, location: locationName, date: dateStr,
-                      notes: downloadLinks,
-                      owner_email: OWNER_EMAIL,
-                      is_digital: "yes",
-                      download_url: urls["8x10"] || Object.values(urls)[0],
+                    await sendResendEmail({
+                      toName: custNameInput,
+                      toEmail: custEmailInput,
+                      orderNumber: codeValid.code,
+                      isDigital: true,
+                      isPhysical: false,
+                      downloadUrls: pdfUrls,
+                      title, locationName, dateStr, styleName,
                     });
                     await markCodeUsed(codeValid.code);
                     setSentToEmail(custEmailInput);
@@ -9566,7 +9645,7 @@ export default function App() {
                   setSending(false);
                 }} disabled={sending}
                   style={{ ...nextBtn, width:"100%", flex:"none", opacity:sending?0.6:1 }}>
-                  {sending ? "Sending your star map…" : "✓ Confirm & Send My Star Map"}
+                  {sending ? "Generating & sending your star map…" : "✓ Confirm & Send My Star Map"}
                 </button>
                 <button onClick={() => setShowWarning(false)}
                   style={{ ...backBtn, width:"100%", flex:"none", marginTop:"8px" }}>
@@ -9639,12 +9718,13 @@ export default function App() {
                     };
                     await submitToGelato(order, imageUrl);
                     if (codeValid) await markCodeUsed(codeValid.code);
-                    await sendEmail({
-                      to_name: custName, to_email: custEmail,
-                      order_number: orderNum,
-                      product: "Unframed Print 8×10\"",
-                      style: styleName, title, location: locationName, date: dateStr,
-                      notes: custNotes || "None", owner_email: OWNER_EMAIL, is_digital: "no",
+                    await sendResendEmail({
+                      toName: custName, toEmail: custEmail,
+                      orderNumber: orderNum,
+                      isDigital: false,
+                      isPhysical: true,
+                      downloadUrls: null,
+                      title, locationName, dateStr, styleName,
                     });
                     setCompletedOrder({ ...order, physical: true });
                     setOrderStep("complete");
