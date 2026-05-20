@@ -8553,7 +8553,7 @@ function calcPosterHeight(W, sc, opts) {
 }
 
 function drawPoster(canvas, opts) {
-  const { stars, styleName, shape, title, footnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, sc, watermark } = opts;
+  const { stars, styleName, shape, names, title, footnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, sc, watermark } = opts;
   const S   = STYLES[styleName];
   const ctx = canvas.getContext("2d");
   const W   = canvas.width, H = canvas.height;
@@ -8653,22 +8653,46 @@ function drawPoster(canvas, opts) {
 
   let ty = textY + 14*sc;
 
+  // Names — large italic script (like "Maria & Oliver")
+  if (names && names.trim()) {
+    ctx.fillStyle = S.textColor;
+    ctx.font = "italic " + (22*sc) + "px 'Cormorant Garamond', Georgia, serif";
+    ctx.fillText(names.trim(), W/2, ty); ty += 30*sc;
+  }
+
+  // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
-    ctx.fillStyle = S.textColor;
-    ctx.font = "italic " + (17*sc) + "px 'Cormorant Garamond', Georgia, serif";
-    ctx.fillText(title, W/2, ty); ty += 24*sc;
-  }
-  if (locationName) {
-    ctx.fillStyle = S.textColor;
-    ctx.font = "500 " + (8.5*sc) + "px 'Inter', sans-serif";
-    ctx.fillText(locationName.toUpperCase(), W/2, ty); ty += 14*sc;
-  }
-  if (showDate && dateStr) {
-    const [y,m,d] = dateStr.split("-").map(Number);
-    const dateText = ordinal(d) + " " + MONTHS[m-1] + " " + y;
     ctx.fillStyle = S.subColor;
-    ctx.font = "300 " + (7*sc) + "px 'Inter', sans-serif";
-    ctx.fillText(dateText + (showTime && timeStr ? " at " + timeStr : ""), W/2, ty); ty += 13*sc;
+    ctx.font = "500 " + (7*sc) + "px 'Inter', sans-serif";
+    ctx.globalAlpha = 0.85;
+    // letter-spacing simulation: draw char by char
+    const upper = title.toUpperCase();
+    const spacing = 2.2*sc;
+    const charWidths = upper.split("").map(c => ctx.measureText(c).width);
+    const totalW = charWidths.reduce((a,b) => a+b, 0) + spacing*(upper.length-1);
+    let cx = W/2 - totalW/2;
+    upper.split("").forEach((c, i) => {
+      ctx.fillText(c, cx + charWidths[i]/2, ty);
+      cx += charWidths[i] + spacing;
+    });
+    ctx.globalAlpha = 1.0;
+    ty += 18*sc;
+  }
+  // Location | Date on one line (like "CHICAGO, IL | MAY 8, 2022")
+  const locPart = locationName ? locationName.toUpperCase() : "";
+  const datePart = (() => {
+    if (!showDate || !dateStr) return "";
+    const [y,m,d] = dateStr.split("-").map(Number);
+    const base = MONTHS[m-1].toUpperCase() + " " + d + ", " + y;
+    return showTime && timeStr ? base + " · " + timeStr : base;
+  })();
+  const locDateLine = [locPart, datePart].filter(Boolean).join("  |  ");
+  if (locDateLine) {
+    ctx.fillStyle = S.subColor;
+    ctx.font = "500 " + (7*sc) + "px 'Inter', sans-serif";
+    ctx.globalAlpha = 0.8;
+    ctx.fillText(locDateLine, W/2, ty); ty += 14*sc;
+    ctx.globalAlpha = 1.0;
   }
   if (showCoords) {
     ctx.fillStyle = S.subColor;
@@ -8729,6 +8753,7 @@ export default function App() {
   const [lonStr,        setLonStr]       = useState("-0.1278");
   const [dateStr,       setDateStr]      = useState("2026-05-18");
   const [timeStr,       setTimeStr]      = useState("22:00");
+  const [names,         setNames]        = useState("Maria & Oliver");
   const [title,         setTitle]        = useState("The Night Our Stars Aligned");
   const [footnote,      setFootnote]     = useState("");
   const [useAuto,       setUseAuto]      = useState(true);
@@ -8800,11 +8825,11 @@ export default function App() {
 
   const stars = useMemo(() => computeStars(dateStr, timeStr, lat, lon), [dateStr, timeStr, lat, lon]);
   const opts  = useMemo(() => ({
-    stars, styleName, shape, title, footnote: computedFootnote,
+    stars, styleName, shape, names, title, footnote: computedFootnote,
     locationName, dateStr, timeStr, lat, lon,
     showLines, showGrid, showCoords, showDate, showTime,
     watermark: !ownerMode && !codeValid && !sent
-  }), [stars, styleName, shape, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
+  }), [stars, styleName, shape, names, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
 
   const drawFrame = useCallback(() => {
     const canvas = previewRef.current;
@@ -9361,6 +9386,9 @@ export default function App() {
             {step === 2 && (
               <div>
                 <div style={card}>
+                  <label style={lbl}>Names</label>
+                  <input style={{ ...inp, marginBottom:"10px" }} type="text" value={names}
+                    onChange={e => setNames(e.target.value)} placeholder="e.g. Maria & Oliver" />
                   <label style={lbl}>Title</label>
                   <input style={{ ...inp, marginBottom:"10px" }} type="text" value={title}
                     onChange={e => setTitle(e.target.value)} placeholder="The Night Our Stars Aligned" />
@@ -9439,6 +9467,8 @@ export default function App() {
             {/* Quick edit */}
             <div style={{ ...card, marginBottom:"10px" }}>
               <span style={{ ...lbl, marginBottom:"10px" }}>Quick Edit</span>
+              <input style={{ ...inp, marginBottom:"8px" }} type="text" value={names}
+                onChange={e => setNames(e.target.value)} placeholder="Names (e.g. Maria & Oliver)" />
               <input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
                 onChange={e => setTitle(e.target.value)} placeholder="Title" />
               <input style={{ ...inp }} type="text" value={locationName}
