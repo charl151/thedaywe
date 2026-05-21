@@ -8718,7 +8718,7 @@ function drawPoster(canvas, opts) {
   // Names — large italic script (like "Maria & Oliver")
   if (names && names.trim()) {
     ctx.fillStyle = S.textColor;
-    ctx.font = "italic " + (22*sc) + "px 'Cormorant Garamond', Georgia, serif";
+    ctx.font = "italic " + (22*sc) + "px 'Playfair Display', Georgia, serif";
     ctx.fillText(names.trim(), W/2, ty); ty += 30*sc;
   }
 
@@ -9216,7 +9216,7 @@ export default function App() {
         * { box-sizing:border-box }
         input:focus { border-color: ${accent} !important; }
         button:active { opacity:0.75; }
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
       `}</style>
 
       {/* Owner download overlay */}
@@ -9227,7 +9227,7 @@ export default function App() {
             <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:"#2a9a2a", marginBottom:"12px" }}>
               {ownerMode ? "✓ Owner Mode — Clean File" : "✓ Your Star Map is Ready"}
             </div>
-            <p style={{ fontSize:"22px", fontStyle:"italic", fontWeight:"300", fontFamily:"'Cormorant Garamond', Georgia, serif", margin:"0 0 4px" }}>the day we.</p>
+            <p style={{ fontSize:"22px", fontStyle:"italic", fontWeight:"300", fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 4px" }}>the day we.</p>
             <p style={{ fontSize:"10px", letterSpacing:"0.3em", color:"#666", margin:"0 0 20px" }}>MADE TO BE REMEMBERED</p>
             <a href={downloadUrl} download={`thedaywe-${printSize}.png`}
               style={{ display:"inline-block", padding:"14px 36px", borderRadius:"9px",
@@ -9259,8 +9259,8 @@ export default function App() {
         <p style={{ fontSize:"9px", letterSpacing:"0.35em", textTransform:"uppercase", color:txtSub, margin:"0 0 6px", fontFamily:"'Georgia', serif" }}>
           MADE TO BE REMEMBERED
         </p>
-        <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"300", margin:"0 0 2px", letterSpacing:"0.04em",
-          fontStyle:"italic", lineHeight:1.1, fontFamily:"'Cormorant Garamond', Georgia, serif" }}>
+        <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"400", margin:"0 0 2px", letterSpacing:"0.02em",
+          fontStyle:"italic", lineHeight:1.1, fontFamily:"'Playfair Display', Georgia, serif" }}>
           the day we.
         </h1>
 
@@ -9307,22 +9307,44 @@ export default function App() {
       {!journey && !codeValid && !ownerMode && step === 0 && orderStep === null && !completedOrder && (
         <div style={{ width:"100%", maxWidth:"680px", margin:"0 auto" }}>
 
-          {/* Hero headline */}
-          <div style={{ textAlign:"center", padding:"52px 24px 32px" }}>
-            <h2 style={{ fontSize:"clamp(28px,5vw,46px)", fontWeight:"300", fontStyle:"italic",
-              fontFamily:"'Cormorant Garamond', Georgia, serif", margin:"0 0 16px", lineHeight:1.2, color:txtMain }}>
-              The night they were born.<br/>
-              The night you said yes.<br/>
-              The night everything changed.
-            </h2>
-            <p style={{ fontSize:"13px", color:txtSub, lineHeight:"1.9", maxWidth:"400px", margin:"0 auto 12px",
-              fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
-              A custom star map showing the exact night sky from your most special moment — beautifully personalised and delivered to your inbox as a print-ready PDF.
-            </p>
-            <p style={{ fontSize:"11px", color:txtSub, letterSpacing:"0.1em", margin:"0 auto 36px",
-              fontFamily:"'Inter', sans-serif", fontWeight:"300", opacity:0.7 }}>
-              ✦ Instant digital delivery &nbsp;·&nbsp; Print at home or any print shop &nbsp;·&nbsp; 100% personalised
-            </p>
+          {/* Hero video */}
+          <div style={{ position:"relative", width:"100%", height:"480px", overflow:"hidden",
+            marginBottom:"48px", borderRadius:"0 0 24px 24px" }}>
+            <video autoPlay muted loop playsInline
+              style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}>
+              <source src="/hero.mp4" type="video/mp4"/>
+            </video>
+            <div style={{ position:"absolute", inset:0,
+              background:"linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%)" }} />
+            <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center", textAlign:"center", padding:"24px" }}>
+              <p style={{ fontSize:"10px", letterSpacing:"0.4em", textTransform:"uppercase",
+                color:"rgba(255,255,255,0.7)", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
+                Personalised Star Maps
+              </p>
+              <h2 style={{ fontSize:"clamp(32px,6vw,54px)", fontWeight:"400", fontStyle:"italic",
+                fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 20px", lineHeight:1.2,
+                color:"#ffffff", textShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+                The night they were born.<br/>
+                The night you said yes.<br/>
+                The night everything changed.
+              </h2>
+              <p style={{ fontSize:"12px", color:"rgba(255,255,255,0.75)", lineHeight:"1.8",
+                maxWidth:"360px", margin:"0 auto 24px", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+                The exact stars from your most special moment — beautifully personalised and emailed as a print-ready PDF.
+              </p>
+              <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
+                style={{ padding:"16px 36px", borderRadius:"10px", background:"#ffffff", color:"#1a1a1a",
+                  border:"none", fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
+                  cursor:"pointer", fontFamily:"'Georgia', serif",
+                  boxShadow:"0 4px 24px rgba(0,0,0,0.3)" }}>
+                Create My Star Map →
+              </button>
+              <p style={{ fontSize:"10px", color:"rgba(255,255,255,0.5)", marginTop:"12px",
+                fontFamily:"'Inter', sans-serif" }}>
+                {formatPrice(PRODUCTS.digital, currency)} · Instant PDF delivery
+              </p>
+            </div>
           </div>
 
           {/* Mockup images */}
@@ -9366,7 +9388,7 @@ export default function App() {
                 <div style={{ fontSize:"9px", letterSpacing:"0.3em", color:txtSub, marginBottom:"8px", fontFamily:"'Inter', sans-serif" }}>
                   STEP {s.n}
                 </div>
-                <div style={{ fontSize:"13px", fontStyle:"italic", fontFamily:"'Cormorant Garamond', Georgia, serif", marginBottom:"4px", color:txtMain }}>
+                <div style={{ fontSize:"13px", fontStyle:"italic", fontFamily:"'Playfair Display', Georgia, serif", marginBottom:"4px", color:txtMain }}>
                   {s.title}
                 </div>
                 <div style={{ fontSize:"10px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
@@ -9761,7 +9783,7 @@ export default function App() {
                 <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub, marginBottom:"12px" }}>
                   Star Map Sent
                 </div>
-                <h2 style={{ fontSize:"20px", fontWeight:"300", fontStyle:"italic", margin:"0 0 12px", fontFamily:"'Cormorant Garamond', Georgia, serif" }}>
+                <h2 style={{ fontSize:"20px", fontWeight:"300", fontStyle:"italic", margin:"0 0 12px", fontFamily:"'Playfair Display', Georgia, serif" }}>
                   It's on its way!
                 </h2>
                 <div style={{ fontSize:"12px", color:txtSub, lineHeight:"2", marginBottom:"20px" }}>
@@ -10052,7 +10074,7 @@ export default function App() {
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"16px", textAlign:"center" }}>
             <div style={{ fontSize:"32px" }}>✨</div>
             <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub }}>Order Confirmed</div>
-            <h2 style={{ fontSize:"22px", fontWeight:"300", fontStyle:"italic", margin:0, fontFamily:"'Cormorant Garamond', Georgia, serif" }}>
+            <h2 style={{ fontSize:"22px", fontWeight:"300", fontStyle:"italic", margin:0, fontFamily:"'Playfair Display', Georgia, serif" }}>
               Thank you{custName ? ", "+custName.split(" ")[0] : ""}!
             </h2>
             <div style={{ fontSize:"11px", color:txtSub, lineHeight:"1.8" }}>
