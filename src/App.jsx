@@ -8722,7 +8722,7 @@ function drawPoster(canvas, opts) {
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (15*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (22*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
