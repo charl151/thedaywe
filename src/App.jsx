@@ -8866,6 +8866,12 @@ export default function App() {
   const [orderLoading,  setOrderLoading] = useState(false);
   const [completedOrder,setCompletedOrder] = useState(null);
 
+  // Cycle hero taglines
+  useEffect(() => {
+    const interval = setInterval(() => setTaglineIdx(i => (i + 1) % 3), 3500);
+    return () => clearInterval(interval);
+  }, []);
+
   const lat = parseFloat(latStr) || 0;
   const lon = parseFloat(lonStr) || 0;
   const S   = STYLES[styleName];
@@ -8913,12 +8919,6 @@ export default function App() {
       new FontFace("Inter", "url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)", { weight:"500" }),
     ];
     fonts.forEach(f => f.load().then(loaded => document.fonts.add(loaded)).catch(() => {}));
-    // Cycle hero taglines
-  useEffect(() => {
-    const interval = setInterval(() => setTaglineIdx(i => (i + 1) % 3), 3500);
-    return () => clearInterval(interval);
-  }, []);
-
   // Auto-detect code in URL e.g. thedaywe.com?code=ABC123
     const params = new URLSearchParams(window.location.search);
     const urlCode = params.get("code");
@@ -9383,22 +9383,13 @@ export default function App() {
                 color:"rgba(255,255,255,0.7)", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
                 Personalised Star Maps
               </p>
-              {[
-                "The day they were born.",
-                "The night you said yes.",
-                "The night everything changed.",
-              ].map((line, i) => (
-                <h2 key={i} style={{ fontSize:"clamp(26px,5vw,44px)", fontWeight:"400", fontStyle:"italic",
-                  fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 20px", lineHeight:1.2,
-                  color:"#ffffff", textShadow:"0 2px 20px rgba(0,0,0,0.4)",
-                  opacity: taglineIdx === i ? 1 : 0,
-                  transition: "opacity 0.8s ease",
-                  position: taglineIdx === i ? "relative" : "absolute",
-                  pointerEvents: "none"
-                }}>
-                  {line}
-                </h2>
-              ))}
+              <h2 style={{ fontSize:"clamp(26px,5vw,44px)", fontWeight:"400", fontStyle:"italic",
+                fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 20px", lineHeight:1.2,
+                color:"#ffffff", textShadow:"0 2px 20px rgba(0,0,0,0.4)",
+                transition: "opacity 0.8s ease", minHeight:"1.4em"
+              }}>
+                {["The day they were born.","The night you said yes.","The night everything changed."][taglineIdx]}
+              </h2>
               <p style={{ fontSize:"16px", color:"rgba(255,255,255,0.9)", lineHeight:"1.6",
                 maxWidth:"360px", margin:"0 auto 20px", fontFamily:"'Playfair Display', Georgia, serif", fontWeight:"400", fontStyle:"italic" }}>
                 The exact stars from your most special moment — personalised and emailed as a print-ready PDF.
