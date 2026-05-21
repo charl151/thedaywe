@@ -9115,6 +9115,27 @@ export default function App() {
 
       if (error) { setOrderError(error.message); setOrderLoading(false); return; }
 
+      // Charge the card via backend
+      const chargeRes = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentMethodId: paymentMethod.id,
+          amount: prod.prices[currency] || prod.prices.NZD,
+          currency,
+          description: `The Day We — ${prod.label} ${prod.sub}`,
+          custName, custEmail,
+        })
+      });
+      const chargeData = await chargeRes.json();
+      if (!chargeRes.ok) throw new Error(chargeData.error || "Payment failed");
+
+      // Handle 3D Secure if required
+      if (chargeData.requiresAction) {
+        const { error: actionError } = await stripe.handleCardAction(chargeData.clientSecret);
+        if (actionError) throw new Error(actionError.message);
+      }
+
       const sizeKey  = prod.size || "8x10";
 
       const order = {
@@ -9826,9 +9847,6 @@ export default function App() {
                 <label style={lbl}>Country</label>
                 <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
                   onChange={e => setCustCountry(e.target.value)} />
-                <label style={lbl}>Special Instructions (optional)</label>
-                <input style={{ ...inp, marginBottom:"14px" }} type="text" value={custNotes}
-                  onChange={e => setCustNotes(e.target.value)} placeholder="e.g. It's a gift — please don't include pricing" />
                 {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}>{orderError}</div>}
                 <button onClick={async () => {
                   if (!custName || !custEmail || !custAddress || !custCity) {
@@ -10024,9 +10042,6 @@ export default function App() {
               <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
                 onChange={e => setCustCountry(e.target.value)} />
             </>)}
-            <label style={lbl}>Special Instructions (optional)</label>
-            <input style={{ ...inp }} type="text" value={custNotes}
-              onChange={e => setCustNotes(e.target.value)} placeholder="e.g. It's a gift — please don't include pricing" />
           </div>
           <div style={{ display:"flex", gap:"8px" }}>
             <button onClick={() => setOrderStep(null)} style={backBtn}>← Back</button>
