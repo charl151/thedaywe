@@ -9148,16 +9148,21 @@ export default function App() {
         pdfUrls[sizeKey] = pdfUrl;
       }
 
-      await sendResendEmail({
-        toName: custName, toEmail: custEmail,
-        orderNumber: orderNum,
-        isDigital: !prod.physical,
-        isPhysical: !!prod.physical,
-        downloadUrls: prod.physical ? null : pdfUrls,
-        title, locationName, dateStr, styleName,
-      });
-
       if (prod.physical) await submitToGelato(order, generateCleanPoster(sizeKey));
+
+      // Email is non-fatal — Gelato order already placed, Supabase has the record
+      try {
+        await sendResendEmail({
+          toName: custName, toEmail: custEmail,
+          orderNumber: orderNum,
+          isDigital: !prod.physical,
+          isPhysical: !!prod.physical,
+          downloadUrls: prod.physical ? null : pdfUrls,
+          title, locationName, dateStr, styleName,
+        });
+      } catch(emailErr) {
+        console.warn("Email failed but order placed:", emailErr.message);
+      }
 
       setCompletedOrder({ ...order, imageUrl: prod.physical ? null : (pdfUrls[sizeKey] || null) });
       setOrderStep("complete");
@@ -9329,9 +9334,9 @@ export default function App() {
                 The night you said yes.<br/>
                 The night everything changed.
               </h2>
-              <p style={{ fontSize:"12px", color:"rgba(255,255,255,0.75)", lineHeight:"1.8",
-                maxWidth:"360px", margin:"0 auto 24px", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
-                The exact stars from your most special moment — beautifully personalised and emailed as a print-ready PDF.
+              <p style={{ fontSize:"11px", color:"rgba(255,255,255,0.75)", lineHeight:"1.7",
+                maxWidth:"320px", margin:"0 auto 20px", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+                The exact stars from your most special moment — personalised and emailed as a print-ready PDF.
               </p>
               <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
                 style={{ padding:"16px 36px", borderRadius:"10px", background:"#ffffff", color:"#1a1a1a",
