@@ -9298,7 +9298,7 @@ export default function App() {
         </p>
         <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"400", margin:"0 0 2px", letterSpacing:"0.02em",
           fontStyle:"italic", lineHeight:1.1, fontFamily:"'Playfair Display', Georgia, serif" }}>
-          the day we.
+          The Day We.
         </h1>
 
         {/* Currency selector */}
@@ -9311,6 +9311,13 @@ export default function App() {
             ))}
           </select>
         </div>
+
+        {/* Etsy logo */}
+        <a href="https://www.etsy.com/shop/TheDayWe" target="_blank" rel="noopener noreferrer"
+          style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", right:"12px", display:"flex", alignItems:"center" }}>
+          <img src="/Etsy logo (Etsy Shop Icon).png" alt="Find us on Etsy"
+            style={{ width:"32px", height:"32px", objectFit:"contain", opacity:0.65, borderRadius:"6px" }} />
+        </a>
 
         {/* Owner mode toggle */}
         <div style={{ position:"absolute", bottom:"8px", right:"12px" }}>
@@ -9359,15 +9366,15 @@ export default function App() {
                 color:"rgba(255,255,255,0.7)", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
                 Personalised Star Maps
               </p>
-              <h2 style={{ fontSize:"clamp(32px,6vw,54px)", fontWeight:"400", fontStyle:"italic",
+              <h2 style={{ fontSize:"clamp(22px,4vw,36px)", fontWeight:"400", fontStyle:"italic",
                 fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 20px", lineHeight:1.2,
                 color:"#ffffff", textShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
                 The night they were born.<br/>
                 The night you said yes.<br/>
                 The night everything changed.
               </h2>
-              <p style={{ fontSize:"11px", color:"rgba(255,255,255,0.75)", lineHeight:"1.7",
-                maxWidth:"320px", margin:"0 auto 20px", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+              <p style={{ fontSize:"16px", color:"rgba(255,255,255,0.9)", lineHeight:"1.6",
+                maxWidth:"360px", margin:"0 auto 20px", fontFamily:"'Playfair Display', Georgia, serif", fontWeight:"400", fontStyle:"italic" }}>
                 The exact stars from your most special moment — personalised and emailed as a print-ready PDF.
               </p>
               <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
@@ -10156,4 +10163,5 @@ export default function App() {
     </div>
   );
 }
+
 
