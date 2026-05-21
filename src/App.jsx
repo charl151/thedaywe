@@ -9041,7 +9041,7 @@ export default function App() {
     };
     const countryCode = countryMap[order.custCountry] || "NZ";
     const body = {
-      orderType: "order",
+      orderType: "draft",
       orderReferenceId: order.orderNumber,
       customerReferenceId: order.custEmail,
       currency: "USD",
