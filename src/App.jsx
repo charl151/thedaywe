@@ -8722,7 +8722,7 @@ function drawPoster(canvas, opts) {
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (18*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (14*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
@@ -8748,14 +8748,14 @@ function drawPoster(canvas, opts) {
   const locDateLine = [locPart, datePart].filter(Boolean).join("  |  ");
   if (locDateLine) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (13*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (15*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.8;
-    ctx.fillText(locDateLine, W/2, ty); ty += 20*sc;
+    ctx.fillText(locDateLine, W/2, ty); ty += 18*sc;
     ctx.globalAlpha = 1.0;
   }
   if (showCoords) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "300 " + (11*sc) + "px 'Inter', sans-serif";
+    ctx.font = "300 " + (15*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.5;
     ctx.fillText(fmtCoords(lat, lon), W/2, ty);
     ctx.globalAlpha = 1.0;
