@@ -8391,7 +8391,7 @@ const SUPABASE_URL = "https://svovecuaibdhgovxafkw.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2b3ZlY3VhaWJkaGdvdnhhZmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTA4MzgsImV4cCI6MjA5NDc4NjgzOH0.1o6xTIskEJdgbD8HggnPofRycTQ28jDtJMJrkRkHMus";
 
 // ── Cloudinary config ────────────────────────────────────────────────────────
-const CLOUDINARY_CLOUD = "daqsu1tkm";
+const CLOUDINARY_CLOUD = "dzajqeir2";
 const CLOUDINARY_KEY   = "836136218237837";
 const CLOUDINARY_SECRET = "yDz4mHWr3ESoLGHKEt8uDf6A9kE";
 
@@ -9169,7 +9169,11 @@ export default function App() {
         pdfUrls[sizeKey] = pdfUrl;
       }
 
-      if (prod.physical) await submitToGelato(order, generateCleanPoster(sizeKey));
+      if (prod.physical) {
+        const posterDataUrl = generateCleanPoster(sizeKey);
+        const posterUrl = await uploadToCloudinary(posterDataUrl);
+        await submitToGelato(order, posterUrl);
+      }
 
       // Email is non-fatal — Gelato order already placed, Supabase has the record
       try {
