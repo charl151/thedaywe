@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     const { toName, toEmail, orderNumber, isDigital, isPhysical, downloadUrls, title, locationName, dateStr } = req.body;
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const OWNER_EMAIL    = "thedaywe@gmail.com";
+    const OWNER_EMAIL    = "thedayweprints@gmail.com";
     const FROM_EMAIL     = "orders@thedaywe.com";
     const REPLY_TO       = "thedayweprints@gmail.com";
 
