@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     const { paymentMethodId, amount, currency, description, custEmail } = req.body;
     const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
-    // Create payment intent
     const createRes = await fetch("https://api.stripe.com/v1/payment_intents", {
       method: "POST",
       headers: {
@@ -29,16 +28,10 @@ export default async function handler(req, res) {
     });
 
     const intent = await createRes.json();
-
     if (intent.error) return res.status(400).json({ error: intent.error.message });
-
-    if (intent.status === "succeeded") {
-      return res.status(200).json({ ok: true, paymentIntentId: intent.id });
-    } else if (intent.status === "requires_action") {
-      return res.status(200).json({ requiresAction: true, clientSecret: intent.client_secret });
-    } else {
-      return res.status(400).json({ error: "Payment failed with status: " + intent.status });
-    }
+    if (intent.status === "succeeded") return res.status(200).json({ ok: true, paymentIntentId: intent.id });
+    if (intent.status === "requires_action") return res.status(200).json({ requiresAction: true, clientSecret: intent.client_secret });
+    return res.status(400).json({ error: "Payment failed with status: " + intent.status });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
