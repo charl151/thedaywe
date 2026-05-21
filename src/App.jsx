@@ -8529,13 +8529,13 @@ function project(alt, az, R) {
 }
 
 function sSize(mag, sc) {
-  if (mag < 0)  return 6.5*sc;
-  if (mag < 1)  return 4.8*sc;
-  if (mag < 2)  return 3.2*sc;
-  if (mag < 3)  return 2.0*sc;
-  if (mag < 4)  return 1.2*sc;
-  if (mag < 5)  return 0.75*sc;
-  return 0.38*sc;
+  if (mag < 0)  return 8.5*sc;
+  if (mag < 1)  return 6.5*sc;
+  if (mag < 2)  return 4.5*sc;
+  if (mag < 3)  return 2.8*sc;
+  if (mag < 4)  return 1.8*sc;
+  if (mag < 5)  return 1.1*sc;
+  return 0.6*sc;
 }
 
 function sAlpha(mag) {
@@ -8671,7 +8671,7 @@ function drawPoster(canvas, opts) {
         ctx.moveTo(skyX+pa.x, skyY+pa.y);
         ctx.lineTo(skyX+pb.x, skyY+pb.y);
         ctx.strokeStyle = S.lineColor;
-        ctx.lineWidth   = 1.0*sc;
+        ctx.lineWidth   = 1.8*sc;
         ctx.stroke();
       });
     });
@@ -8722,7 +8722,7 @@ function drawPoster(canvas, opts) {
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (11*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (15*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
