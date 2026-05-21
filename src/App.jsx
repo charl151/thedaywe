@@ -9176,9 +9176,16 @@ export default function App() {
         const posterUrl = await uploadToCloudinary(posterDataUrl);
         const gelatoOrderId = await submitToGelato(order, posterUrl);
         if (gelatoOrderId) {
-          await supabase.from("orders")
-            .update({ gelato_order_id: gelatoOrderId })
-            .eq("order_number", orderNum);
+          await fetch(`${SUPABASE_URL}/rest/v1/orders?order_number=eq.${orderNum}`, {
+            method: "PATCH",
+            headers: {
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${SUPABASE_KEY}`,
+              "Content-Type": "application/json",
+              "Prefer": "return=minimal"
+            },
+            body: JSON.stringify({ gelato_order_id: gelatoOrderId })
+          });
         }
       }
 
