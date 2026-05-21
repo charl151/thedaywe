@@ -8484,6 +8484,24 @@ async function markCodeUsed(code) {
   );
 }
 
+async function saveOrder(data) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify(data)
+    });
+  } catch(e) {
+    // Non-fatal — don't block the order flow if this fails
+    console.warn("Order save failed:", e);
+  }
+}
+
 function d2r(d) { return d * Math.PI / 180; }
 function r2d(r) { return r * 180 / Math.PI; }
 
@@ -8797,7 +8815,7 @@ export default function App() {
   const [lonStr,        setLonStr]       = useState("-0.1278");
   const [dateStr,       setDateStr]      = useState("2026-05-18");
   const [timeStr,       setTimeStr]      = useState("22:00");
-  const [names,         setNames]        = useState("Maria & Oliver");
+  const [names,         setNames]        = useState("");
   const [title,         setTitle]        = useState("The Night Our Stars Aligned");
   const [footnote,      setFootnote]     = useState("");
   const [useAuto,       setUseAuto]      = useState(true);
@@ -8894,6 +8912,25 @@ export default function App() {
       new FontFace("Inter", "url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)", { weight:"500" }),
     ];
     fonts.forEach(f => f.load().then(loaded => document.fonts.add(loaded)).catch(() => {}));
+    // Auto-detect code in URL e.g. thedaywe.com?code=ABC123
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get("code");
+    if (urlCode) {
+      const upper = urlCode.toUpperCase();
+      setCodeInput(upper);
+      setJourney("code");
+      // Auto-validate it
+      validateCode(upper).then(result => {
+        if (result) {
+          setCodeValid(result);
+          if (result.type === "physical") setJourney("print");
+          else setJourney("code");
+          setStep(0);
+        } else {
+          setCodeError("This code is invalid or has already been used.");
+        }
+      }).catch(() => setCodeError("Could not validate code. Please try again."));
+    }
   }, []);
 
   useEffect(() => {
@@ -9090,6 +9127,17 @@ export default function App() {
       };
 
       saveOrderLog(order);
+      await saveOrder({
+        order_number: orderNum,
+        email: custEmail,
+        name: custName,
+        code: null,
+        product,
+        style: styleName,
+        names, title, location_name: locationName,
+        date_str: dateStr, lat, lon,
+        status: "pending"
+      });
 
       let pdfUrls = {};
       if (!prod.physical) {
@@ -9255,39 +9303,110 @@ export default function App() {
         )}
       </div>
 
-      {/* Journey selector — shown before any customisation begins if no journey selected and no code */}
+      {/* HERO + Journey selector */}
       {!journey && !codeValid && !ownerMode && step === 0 && orderStep === null && !completedOrder && (
-        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"32px 16px" }}>
-          <p style={{ textAlign:"center", fontSize:"11px", color:txtSub, letterSpacing:"0.15em", textTransform:"uppercase", marginBottom:"24px" }}>
-            How would you like to proceed?
-          </p>
+        <div style={{ width:"100%", maxWidth:"680px", margin:"0 auto" }}>
 
-          {/* Option 1: Buy digital */}
-          <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
-            style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
-              border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
-              fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
-            <div style={{ fontSize:"14px", marginBottom:"4px" }}>Buy Digital Download</div>
-            <div style={{ fontSize:"10px", color:txtSub }}>Customise your star map and download instantly · {formatPrice(PRODUCTS.digital, currency)}</div>
-          </button>
+          {/* Hero headline */}
+          <div style={{ textAlign:"center", padding:"52px 24px 32px" }}>
+            <h2 style={{ fontSize:"clamp(28px,5vw,46px)", fontWeight:"300", fontStyle:"italic",
+              fontFamily:"'Cormorant Garamond', Georgia, serif", margin:"0 0 16px", lineHeight:1.2, color:txtMain }}>
+              The night they were born.<br/>
+              The night you said yes.<br/>
+              The night everything changed.
+            </h2>
+            <p style={{ fontSize:"13px", color:txtSub, lineHeight:"1.9", maxWidth:"400px", margin:"0 auto 12px",
+              fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+              A custom star map showing the exact night sky from your most special moment — beautifully personalised and delivered to your inbox as a print-ready PDF.
+            </p>
+            <p style={{ fontSize:"11px", color:txtSub, letterSpacing:"0.1em", margin:"0 auto 36px",
+              fontFamily:"'Inter', sans-serif", fontWeight:"300", opacity:0.7 }}>
+              ✦ Instant digital delivery &nbsp;·&nbsp; Print at home or any print shop &nbsp;·&nbsp; 100% personalised
+            </p>
+          </div>
 
-          {/* Option 2: Etsy code */}
-          <button onClick={() => setJourney("code")}
-            style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
-              border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
-              fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
-            <div style={{ fontSize:"14px", marginBottom:"4px" }}>I have a code</div>
-            <div style={{ fontSize:"10px", color:txtSub }}>Purchased on Etsy or have a gift code? Enter it here to unlock your design</div>
-          </button>
+          {/* Mockup images */}
+          <div style={{ display:"flex", gap:"12px", padding:"0 16px", marginBottom:"40px", justifyContent:"center", alignItems:"flex-end" }}>
+            <div style={{ flex:1, maxWidth:"180px" }}>
+              <img src="/Mockups star map (1).png" alt="Birth star map"
+                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} />
+              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>NEW ARRIVAL</p>
+            </div>
+            <div style={{ flex:1, maxWidth:"210px" }}>
+              <img src="/Mockups star map (2).png" alt="Couples star map"
+                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 16px 48px rgba(0,0,0,0.18)", display:"block" }} />
+              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>WEDDING NIGHT</p>
+            </div>
+            <div style={{ flex:1, maxWidth:"180px" }}>
+              <img src="/Mockups star map (3).png" alt="Personal star map"
+                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} />
+              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>ANNIVERSARY</p>
+            </div>
+          </div>
 
-          {/* Option 3: Physical print */}
-          <button onClick={() => { setJourney("print"); setProduct("unframed_8x10"); }}
-            style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
-              border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
-              fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
-            <div style={{ fontSize:"14px", marginBottom:"4px" }}>Order a Physical Print</div>
-            <div style={{ fontSize:"10px", color:txtSub }}>Printed and shipped to your door · from {formatPrice(PRODUCTS.unframed_8x10, currency)}</div>
-          </button>
+          {/* Occasions strip */}
+          <div style={{ display:"flex", justifyContent:"center", flexWrap:"wrap", gap:"8px", padding:"0 16px", marginBottom:"40px" }}>
+            {[["👶","New Babies"],["💍","Weddings"],["💕","Anniversaries"],["🎂","Birthdays"],["💫","First Dates"],["🌟","Just Because"]].map(([emoji, label]) => (
+              <div key={label} style={{ padding:"8px 14px", borderRadius:"20px", border:"1px solid "+cardBdr,
+                background:cardBg, fontSize:"11px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+                {emoji} {label}
+              </div>
+            ))}
+          </div>
+
+          {/* How it works */}
+          <div style={{ display:"flex", gap:"10px", justifyContent:"center", marginBottom:"40px", flexWrap:"wrap", padding:"0 16px" }}>
+            {[
+              { n:"1", title:"Pick your moment", sub:"Enter a date, time & location" },
+              { n:"2", title:"Personalise it", sub:"Add names, choose your style" },
+              { n:"3", title:"Get it instantly", sub:"PDF emailed to you in minutes" },
+            ].map(s => (
+              <div key={s.n} style={{ flex:"1", minWidth:"140px", maxWidth:"180px", padding:"20px 14px",
+                border:"1px solid "+cardBdr, borderRadius:"12px", background:cardBg, textAlign:"center" }}>
+                <div style={{ fontSize:"9px", letterSpacing:"0.3em", color:txtSub, marginBottom:"8px", fontFamily:"'Inter', sans-serif" }}>
+                  STEP {s.n}
+                </div>
+                <div style={{ fontSize:"13px", fontStyle:"italic", fontFamily:"'Cormorant Garamond', Georgia, serif", marginBottom:"4px", color:txtMain }}>
+                  {s.title}
+                </div>
+                <div style={{ fontSize:"10px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+                  {s.sub}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Journey buttons */}
+          <div style={{ padding:"0 16px 64px" }}>
+            <p style={{ textAlign:"center", fontSize:"9px", color:txtSub, letterSpacing:"0.25em",
+              textTransform:"uppercase", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
+              Get started
+            </p>
+
+            <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
+              style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
+                border:"1.5px solid "+accent, background:accent, color:accentFg,
+                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+              <div style={{ fontSize:"14px", marginBottom:"4px" }}>Create My Star Map</div>
+              <div style={{ fontSize:"10px", opacity:0.8 }}>PDF emailed instantly · {formatPrice(PRODUCTS.digital, currency)} · print at home or any print shop</div>
+            </button>
+
+            <button onClick={() => setJourney("code")}
+              style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
+                border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
+                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+              <div style={{ fontSize:"14px", marginBottom:"4px" }}>I have a code</div>
+              <div style={{ fontSize:"10px", color:txtSub }}>Purchased on Etsy? Enter your code to unlock your personalised design</div>
+            </button>
+
+            <button onClick={() => { setJourney("print"); setProduct("unframed_8x10"); }}
+              style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
+                border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
+                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+              <div style={{ fontSize:"14px", marginBottom:"4px" }}>Order a Physical Print</div>
+              <div style={{ fontSize:"10px", color:txtSub }}>Professionally printed and shipped to your door · from {formatPrice(PRODUCTS.unframed_8x10, currency)}</div>
+            </button>
+          </div>
         </div>
       )}
 
@@ -9429,8 +9548,28 @@ export default function App() {
                   <input style={{ ...inp, marginBottom:"10px" }} type="text" value={names}
                     onChange={e => setNames(e.target.value)} placeholder="e.g. Maria & Oliver" />
                   <label style={lbl}>Title</label>
-                  <input style={{ ...inp, marginBottom:"10px" }} type="text" value={title}
+                  <input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
                     onChange={e => setTitle(e.target.value)} placeholder="The Night Our Stars Aligned" />
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"12px" }}>
+                    {[
+                      "The Night We Met",
+                      "Born Under This Sky",
+                      "Written in the Stars",
+                      "The Night You Said Yes",
+                      "Where Your Story Began",
+                      "The Night Everything Changed",
+                      "Our Night to Remember",
+                      "Under the Same Sky",
+                    ].map(s => (
+                      <button key={s} onClick={() => setTitle(s)}
+                        style={{ padding:"5px 10px", borderRadius:"20px", border:"1px solid "+(title===s ? accent : cardBdr),
+                          background: title===s ? accent : "transparent", color: title===s ? accentFg : txtSub,
+                          fontSize:"9px", cursor:"pointer", fontFamily:"'Georgia', serif", fontStyle:"italic",
+                          letterSpacing:"0.05em", transition:"all 0.15s" }}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                   <label style={lbl}>Footnote</label>
                   <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"8px" }}>
                     <input type="checkbox" id="auto-fn" checked={useAuto} onChange={e => setUseAuto(e.target.checked)}
@@ -9567,6 +9706,17 @@ export default function App() {
                   if (!custNameInput || !custEmailInput) { setSendError("Please enter your name and email."); return; }
                   setSending(true); setSendError("");
                   try {
+                    await saveOrder({
+                      order_number: codeValid.code,
+                      email: custEmailInput,
+                      name: custNameInput,
+                      code: codeValid.code,
+                      product: "digital",
+                      style: styleName,
+                      names, title, location_name: locationName,
+                      date_str: dateStr, lat, lon,
+                      status: "pending"
+                    });
                     const pdfUrls = {};
                     for (const [key] of Object.entries(PRINT_SIZES)) {
                       const pngDataUrl = generateCleanPoster(key);
@@ -9585,9 +9735,11 @@ export default function App() {
                       title, locationName, dateStr, styleName,
                     });
                     await markCodeUsed(codeValid.code);
+                    await saveOrder({ order_number: codeValid.code, status: "sent", email: custEmailInput, name: custNameInput, code: codeValid.code, product: "digital", style: styleName, names, title, location_name: locationName, date_str: dateStr, lat, lon });
                     setSentToEmail(custEmailInput);
                     setSent(true);
                   } catch(e) {
+                    await saveOrder({ order_number: codeValid.code, status: "failed", error: e.message, email: custEmailInput, name: custNameInput, code: codeValid.code, product: "digital", style: styleName, names, title, location_name: locationName, date_str: dateStr, lat, lon });
                     setSendError("Something went wrong: " + e.message + ". Please email thedayweprints@gmail.com");
                   }
                   setSending(false);
@@ -9664,6 +9816,17 @@ export default function App() {
                       custName, custEmail, custAddress, custCity, custPostcode, custCountry, custNotes,
                       date: new Date().toISOString(), style: styleName, title, locationName, dateStr, timeStr,
                     };
+                    await saveOrder({
+                      order_number: orderNum,
+                      email: custEmail,
+                      name: custName,
+                      code: codeValid?.code || null,
+                      product: "unframed_8x10",
+                      style: styleName,
+                      names, title, location_name: locationName,
+                      date_str: dateStr, lat, lon,
+                      status: "pending"
+                    });
                     await submitToGelato(order, imageUrl);
                     if (codeValid) await markCodeUsed(codeValid.code);
                     await sendResendEmail({
