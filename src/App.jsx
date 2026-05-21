@@ -323,7 +323,7 @@ const FRAMED_COUNTRIES = ["GB","US","DE","FR","IT","ES","NL","BE","AT","IE","PT"
 // Base prices in NZD — conversion rates are approximate and updated periodically
 const CURRENCIES = {
   NZD: { symbol:"$",  code:"NZD", rate:1.000,  countries:["NZ"] },
-  AUD: { symbol:"A$", code:"AUD", rate:0.909,  countries:["AU"] },
+  AUD: { symbol:"$", code:"AUD", rate:0.909,  countries:["AU"] },
   GBP: { symbol:"£",  code:"GBP", rate:0.682,  countries:["GB"] },
   USD: { symbol:"$",  code:"USD", rate:0.909,  countries:["US","CA"] },
   EUR: { symbol:"€",  code:"EUR", rate:0.909,  countries:["DE","FR","IT","ES","NL","BE","AT","IE","PT","FI","GR"] },
@@ -9312,7 +9312,7 @@ export default function App() {
         </p>
         <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"400", margin:"0 0 6px", letterSpacing:"0.02em",
           fontStyle:"italic", lineHeight:1.1, fontFamily:"'Playfair Display', Georgia, serif" }}>
-          The Day We.
+          The Day We
         </h1>
         <p style={{ fontSize:"10px", letterSpacing:"0.2em", textTransform:"uppercase", color:txtSub, margin:"0", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
           Personalised star maps for life's defining moments
@@ -9333,7 +9333,7 @@ export default function App() {
         <a href="https://www.etsy.com/shop/TheDayWe" target="_blank" rel="noopener noreferrer"
           style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", right:"12px", display:"flex", alignItems:"center" }}>
           <img src="/Etsy logo (Etsy Shop Icon).png" alt="Find us on Etsy"
-            style={{ width:"32px", height:"32px", objectFit:"contain", opacity:0.65, borderRadius:"6px" }} />
+            style={{ width:"52px", height:"52px", objectFit:"contain", opacity:0.65, borderRadius:"6px" }} />
         </a>
 
         {/* Owner mode toggle */}
@@ -9440,9 +9440,9 @@ export default function App() {
           {/* How it works */}
           <div style={{ display:"flex", gap:"0", justifyContent:"center", marginBottom:"40px", padding:"0 16px", alignItems:"flex-start" }}>
             {[
-              { n:"i", title:"Choose your moment", sub:"A date, time & place that meant everything" },
-              { n:"ii", title:"Make it yours", sub:"Names, style, and a title only you could write" },
-              { n:"iii", title:"Receive it instantly", sub:"Print-ready PDF in your inbox within minutes" },
+              { n:"1.", title:"Choose your moment", sub:"A date, time & place that meant everything" },
+              { n:"2.", title:"Make it yours", sub:"Names, style, and a title only you could write" },
+              { n:"3.", title:"Receive it instantly", sub:"Print-ready PDF in your inbox within minutes" },
             ].map((s, idx) => (
               <div key={s.n} style={{ flex:"1", minWidth:"100px", maxWidth:"200px", padding:"20px 14px",
                 borderRight: idx < 2 ? "1px solid "+cardBdr : "none", textAlign:"center" }}>
