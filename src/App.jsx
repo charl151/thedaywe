@@ -9061,9 +9061,9 @@ export default function App() {
         email: order.custEmail,
       }
     };
-    const res = await fetch("https://order.gelatoapis.com/v4/orders", {
+    const res = await fetch("/api/submit-gelato", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-API-KEY": GELATO_KEY },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
     if (!res.ok) { const err = await res.text(); console.error("Gelato error:", err); }
