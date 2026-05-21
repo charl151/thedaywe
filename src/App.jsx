@@ -9377,12 +9377,12 @@ export default function App() {
                 maxWidth:"360px", margin:"0 auto 20px", fontFamily:"'Playfair Display', Georgia, serif", fontWeight:"400", fontStyle:"italic" }}>
                 The exact stars from your most special moment — personalised and emailed as a print-ready PDF.
               </p>
-              <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
+              <button onClick={() => document.getElementById("journey-buttons").scrollIntoView({ behavior: "smooth" })}
                 style={{ padding:"16px 36px", borderRadius:"10px", background:"#ffffff", color:"#1a1a1a",
                   border:"none", fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
                   cursor:"pointer", fontFamily:"'Georgia', serif",
                   boxShadow:"0 4px 24px rgba(0,0,0,0.3)" }}>
-                Create My Star Map →
+                Get Started →
               </button>
               <p style={{ fontSize:"13px", color:"rgba(255,255,255,0.8)", marginTop:"12px",
                 fontFamily:"'Inter', sans-serif", letterSpacing:"0.05em" }}>
@@ -9443,7 +9443,7 @@ export default function App() {
           </div>
 
           {/* Journey buttons */}
-          <div style={{ padding:"0 16px 64px" }}>
+          <div id="journey-buttons" style={{ padding:"0 16px 64px" }}>
             <p style={{ textAlign:"center", fontSize:"9px", color:txtSub, letterSpacing:"0.25em",
               textTransform:"uppercase", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
               Get started
