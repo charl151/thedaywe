@@ -8603,8 +8603,8 @@ function computeStars(dateStr, timeStr, lat, lon) {
 
 function calcPosterHeight(W, sc, opts) {
   const { title, locationName, showDate, showCoords, showFootnote } = opts;
-  const PAD = 42*sc, skyR = W * 0.36, skyY = PAD + skyR + 24*sc;
-  const textY = skyY + skyR + 26*sc;
+  const PAD = 42*sc, skyR = W * 0.43, skyY = PAD + skyR + 24*sc;
+  const textY = skyY + skyR + 55*sc;
   let ty = textY + 14*sc;
   if (title) ty += 24*sc;
   if (locationName) ty += 14*sc;
@@ -8619,7 +8619,7 @@ function drawPoster(canvas, opts) {
   const S   = STYLES[styleName];
   const ctx = canvas.getContext("2d");
   const W   = canvas.width, H = canvas.height;
-  const PAD = 42*sc, skyR = W * 0.36, skyX = W/2, skyY = PAD + skyR + 24*sc;
+  const PAD = 42*sc, skyR = W * 0.43, skyX = W/2, skyY = H*0.38;
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = S.posterBg;
@@ -8708,7 +8708,7 @@ function drawPoster(canvas, opts) {
   ctx.stroke();
   ctx.restore();
 
-  const textY = skyY + skyR + 26*sc;
+  const textY = skyY + skyR + 55*sc;
   ctx.textAlign = "center";
   ctx.strokeStyle = S.divColor; ctx.lineWidth = 0.7*sc;
   ctx.beginPath(); ctx.moveTo(W*0.2, textY-8*sc); ctx.lineTo(W*0.8, textY-8*sc); ctx.stroke();
@@ -8718,14 +8718,14 @@ function drawPoster(canvas, opts) {
   // Names — large italic script (like "Maria & Oliver")
   if (names && names.trim()) {
     ctx.fillStyle = S.textColor;
-    ctx.font = "italic " + (22*sc) + "px 'Playfair Display', Georgia, serif";
-    ctx.fillText(names.trim(), W/2, ty); ty += 30*sc;
+    ctx.font = "italic " + (32*sc) + "px 'Playfair Display', Georgia, serif";
+    ctx.fillText(names.trim(), W/2, ty); ty += 70*sc;
   }
 
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (9*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (13*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
@@ -8738,7 +8738,7 @@ function drawPoster(canvas, opts) {
       cx += charWidths[i] + spacing;
     });
     ctx.globalAlpha = 1.0;
-    ty += 18*sc;
+    ty += 36*sc;
   }
   // Location | Date on one line (like "CHICAGO, IL | MAY 8, 2022")
   const locPart = locationName ? locationName.toUpperCase() : "";
@@ -8751,14 +8751,14 @@ function drawPoster(canvas, opts) {
   const locDateLine = [locPart, datePart].filter(Boolean).join("  |  ");
   if (locDateLine) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (8.5*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (11*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.8;
-    ctx.fillText(locDateLine, W/2, ty); ty += 14*sc;
+    ctx.fillText(locDateLine, W/2, ty); ty += 36*sc;
     ctx.globalAlpha = 1.0;
   }
   if (showCoords) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "300 " + (7.5*sc) + "px 'Inter', sans-serif";
+    ctx.font = "300 " + (10*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.6;
     ctx.fillText(fmtCoords(lat, lon), W/2, ty);
     ctx.globalAlpha = 1.0;
