@@ -9312,7 +9312,7 @@ export default function App() {
             marginBottom:"48px", borderRadius:"0 0 24px 24px" }}>
             <video autoPlay muted loop playsInline
               style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}>
-              <source src="/hero.mp4" type="video/mp4"/>
+              <source src="/download.mp4" type="video/mp4"/>
             </video>
             <div style={{ position:"absolute", inset:0,
               background:"linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%)" }} />
@@ -9350,12 +9350,12 @@ export default function App() {
           {/* Mockup images */}
           <div style={{ display:"flex", gap:"12px", padding:"0 16px", marginBottom:"40px", justifyContent:"center", alignItems:"flex-end" }}>
             <div style={{ flex:1, maxWidth:"180px" }}>
-              <img src="/Mockups star map (1).png" alt="Birth star map"
+              <img src="/Mockups star map (2).png" alt="Birth star map"
                 style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} />
               <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>NEW ARRIVAL</p>
             </div>
             <div style={{ flex:1, maxWidth:"210px" }}>
-              <img src="/Mockups star map (2).png" alt="Couples star map"
+              <img src="/Mockups star map (1).png" alt="Couples star map"
                 style={{ width:"100%", borderRadius:"8px", boxShadow:"0 16px 48px rgba(0,0,0,0.18)", display:"block" }} />
               <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>WEDDING NIGHT</p>
             </div>
