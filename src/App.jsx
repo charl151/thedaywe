@@ -8603,7 +8603,7 @@ function computeStars(dateStr, timeStr, lat, lon) {
 
 function calcPosterHeight(W, sc, opts) {
   const { title, locationName, showDate, showCoords, showFootnote } = opts;
-  const PAD = 42*sc, skyR = W*0.36, skyY = PAD + skyR + 24*sc;
+  const PAD = 42*sc, skyR = Math.min(W, H || W) * 0.36, skyY = PAD + skyR + 24*sc;
   const textY = skyY + skyR + 26*sc;
   let ty = textY + 14*sc;
   if (title) ty += 24*sc;
@@ -8619,7 +8619,7 @@ function drawPoster(canvas, opts) {
   const S   = STYLES[styleName];
   const ctx = canvas.getContext("2d");
   const W   = canvas.width, H = canvas.height;
-  const PAD = 42*sc, skyR = W*0.36, skyX = W/2, skyY = PAD + skyR + 24*sc;
+  const PAD = 42*sc, skyR = Math.min(W, H) * 0.36, skyX = W/2, skyY = PAD + skyR + 24*sc;
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = S.posterBg;
