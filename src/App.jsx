@@ -9421,7 +9421,7 @@ export default function App() {
               <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>THE NIGHT WE SAID YES</p>
             </div>
             <div style={{ flex:1, maxWidth:"180px" }}>
-              <img src="/Mockups star map (3).png" alt="Personal star map"
+              <img src="/Mockups star map (5).png" alt="Personal star map"
                 style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} />
               <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>ANNIVERSARY</p>
             </div>
