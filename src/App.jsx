@@ -8529,12 +8529,12 @@ function project(alt, az, R) {
 }
 
 function sSize(mag, sc) {
-  if (mag < 0)  return 4.5*sc;
-  if (mag < 1)  return 3.2*sc;
-  if (mag < 2)  return 2.2*sc;
-  if (mag < 3)  return 1.4*sc;
-  if (mag < 4)  return 0.9*sc;
-  if (mag < 5)  return 0.58*sc;
+  if (mag < 0)  return 6.5*sc;
+  if (mag < 1)  return 4.8*sc;
+  if (mag < 2)  return 3.2*sc;
+  if (mag < 3)  return 2.0*sc;
+  if (mag < 4)  return 1.2*sc;
+  if (mag < 5)  return 0.75*sc;
   return 0.38*sc;
 }
 
@@ -8619,7 +8619,7 @@ function drawPoster(canvas, opts) {
   const S   = STYLES[styleName];
   const ctx = canvas.getContext("2d");
   const W   = canvas.width, H = canvas.height;
-  const PAD = 42*sc, skyR = Math.min(W, H > 0 ? H : W) * 0.36, skyX = W/2, skyY = PAD + skyR + 24*sc;
+  const PAD = 42*sc, skyR = W * 0.36, skyX = W/2, skyY = PAD + skyR + 24*sc;
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = S.posterBg;
@@ -8671,7 +8671,7 @@ function drawPoster(canvas, opts) {
         ctx.moveTo(skyX+pa.x, skyY+pa.y);
         ctx.lineTo(skyX+pb.x, skyY+pb.y);
         ctx.strokeStyle = S.lineColor;
-        ctx.lineWidth   = 0.7*sc;
+        ctx.lineWidth   = 1.0*sc;
         ctx.stroke();
       });
     });
@@ -8982,8 +8982,8 @@ export default function App() {
     const off = document.createElement("canvas");
     const size = PRINT_SIZES[sizeKey || "8x10"];
     off.width  = size.w;
+    off.height = size.h;
     const sc = size.w / 800;
-    off.height = calcPosterHeight(size.w, sc, opts);
     drawPoster(off, { ...opts, sc, watermark: false });
     return off.toDataURL("image/png");
   }
