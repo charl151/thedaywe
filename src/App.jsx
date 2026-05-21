@@ -8722,7 +8722,7 @@ function drawPoster(canvas, opts) {
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (22*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (18*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
@@ -8748,14 +8748,14 @@ function drawPoster(canvas, opts) {
   const locDateLine = [locPart, datePart].filter(Boolean).join("  |  ");
   if (locDateLine) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (11*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (13*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.8;
-    ctx.fillText(locDateLine, W/2, ty); ty += 44*sc;
+    ctx.fillText(locDateLine, W/2, ty); ty += 20*sc;
     ctx.globalAlpha = 1.0;
   }
   if (showCoords) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "300 " + (10*sc) + "px 'Inter', sans-serif";
+    ctx.font = "300 " + (11*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.5;
     ctx.fillText(fmtCoords(lat, lon), W/2, ty);
     ctx.globalAlpha = 1.0;
@@ -9633,13 +9633,17 @@ export default function App() {
                   <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"12px" }}>
                     {[
                       "The Night We Met",
-                      "Born Under This Sky",
-                      "Written in the Stars",
                       "The Night You Said Yes",
-                      "Where Your Story Began",
                       "The Night Everything Changed",
+                      "Born Under This Sky",
+                      "The Night They Were Born",
+                      "Written in the Stars",
+                      "Where Your Story Began",
                       "Our Night to Remember",
                       "Under the Same Sky",
+                      "The Night We Became Family",
+                      "Ngā Whetū o Matariki",
+                      "The Night We Said I Do",
                     ].map(s => (
                       <button key={s} onClick={() => setTitle(s)}
                         style={{ padding:"6px 12px", borderRadius:"20px", border:"1px solid "+(title===s ? accent : cardBdr),
