@@ -8804,6 +8804,7 @@ export default function App() {
 
   // Core design state
   const [step,          setStep]         = useState(0);
+  const [taglineIdx,    setTaglineIdx]   = useState(0);
   const [styleName,     setStyleName]    = useState("classic");
   const [shape,         setShape]        = useState("circle");
   const [locSearch,     setLocSearch]    = useState("");
@@ -8912,7 +8913,13 @@ export default function App() {
       new FontFace("Inter", "url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)", { weight:"500" }),
     ];
     fonts.forEach(f => f.load().then(loaded => document.fonts.add(loaded)).catch(() => {}));
-    // Auto-detect code in URL e.g. thedaywe.com?code=ABC123
+    // Cycle hero taglines
+  useEffect(() => {
+    const interval = setInterval(() => setTaglineIdx(i => (i + 1) % 3), 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-detect code in URL e.g. thedaywe.com?code=ABC123
     const params = new URLSearchParams(window.location.search);
     const urlCode = params.get("code");
     if (urlCode) {
@@ -9303,10 +9310,13 @@ export default function App() {
         <p style={{ fontSize:"9px", letterSpacing:"0.35em", textTransform:"uppercase", color:txtSub, margin:"0 0 6px", fontFamily:"'Georgia', serif" }}>
           MADE TO BE REMEMBERED
         </p>
-        <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"400", margin:"0 0 2px", letterSpacing:"0.02em",
+        <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"400", margin:"0 0 6px", letterSpacing:"0.02em",
           fontStyle:"italic", lineHeight:1.1, fontFamily:"'Playfair Display', Georgia, serif" }}>
           The Day We.
         </h1>
+        <p style={{ fontSize:"10px", letterSpacing:"0.2em", textTransform:"uppercase", color:txtSub, margin:"0", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+          Personalised star maps for life's defining moments
+        </p>
 
         {/* Currency selector */}
         <div style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", left:"12px" }}>
@@ -9373,13 +9383,22 @@ export default function App() {
                 color:"rgba(255,255,255,0.7)", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
                 Personalised Star Maps
               </p>
-              <h2 style={{ fontSize:"clamp(22px,4vw,36px)", fontWeight:"400", fontStyle:"italic",
-                fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 20px", lineHeight:1.2,
-                color:"#ffffff", textShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
-                The night they were born.<br/>
-                The night you said yes.<br/>
-                The night everything changed.
-              </h2>
+              {[
+                "The day they were born.",
+                "The night you said yes.",
+                "The night everything changed.",
+              ].map((line, i) => (
+                <h2 key={i} style={{ fontSize:"clamp(26px,5vw,44px)", fontWeight:"400", fontStyle:"italic",
+                  fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 20px", lineHeight:1.2,
+                  color:"#ffffff", textShadow:"0 2px 20px rgba(0,0,0,0.4)",
+                  opacity: taglineIdx === i ? 1 : 0,
+                  transition: "opacity 0.8s ease",
+                  position: taglineIdx === i ? "relative" : "absolute",
+                  pointerEvents: "none"
+                }}>
+                  {line}
+                </h2>
+              ))}
               <p style={{ fontSize:"16px", color:"rgba(255,255,255,0.9)", lineHeight:"1.6",
                 maxWidth:"360px", margin:"0 auto 20px", fontFamily:"'Playfair Display', Georgia, serif", fontWeight:"400", fontStyle:"italic" }}>
                 The exact stars from your most special moment — personalised and emailed as a print-ready PDF.
@@ -9408,7 +9427,7 @@ export default function App() {
             <div style={{ flex:1, maxWidth:"210px" }}>
               <img src="/Mockups star map (1).png" alt="Couples star map"
                 style={{ width:"100%", borderRadius:"8px", boxShadow:"0 16px 48px rgba(0,0,0,0.18)", display:"block" }} />
-              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>WEDDING NIGHT</p>
+              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>THE NIGHT WE SAID YES</p>
             </div>
             <div style={{ flex:1, maxWidth:"180px" }}>
               <img src="/Mockups star map (3).png" alt="Personal star map"
@@ -9428,21 +9447,21 @@ export default function App() {
           </div>
 
           {/* How it works */}
-          <div style={{ display:"flex", gap:"10px", justifyContent:"center", marginBottom:"40px", flexWrap:"wrap", padding:"0 16px" }}>
+          <div style={{ display:"flex", gap:"0", justifyContent:"center", marginBottom:"40px", padding:"0 16px", alignItems:"flex-start" }}>
             {[
-              { n:"1", title:"Pick your moment", sub:"Enter a date, time & location" },
-              { n:"2", title:"Personalise it", sub:"Add names, choose your style" },
-              { n:"3", title:"Get it instantly", sub:"PDF emailed to you in minutes" },
-            ].map(s => (
-              <div key={s.n} style={{ flex:"1", minWidth:"140px", maxWidth:"180px", padding:"20px 14px",
-                border:"1px solid "+cardBdr, borderRadius:"12px", background:cardBg, textAlign:"center" }}>
-                <div style={{ fontSize:"9px", letterSpacing:"0.3em", color:txtSub, marginBottom:"8px", fontFamily:"'Inter', sans-serif" }}>
-                  STEP {s.n}
+              { n:"i", title:"Choose your moment", sub:"A date, time & place that meant everything" },
+              { n:"ii", title:"Make it yours", sub:"Names, style, and a title only you could write" },
+              { n:"iii", title:"Receive it instantly", sub:"Print-ready PDF in your inbox within minutes" },
+            ].map((s, idx) => (
+              <div key={s.n} style={{ flex:"1", minWidth:"100px", maxWidth:"200px", padding:"20px 14px",
+                borderRight: idx < 2 ? "1px solid "+cardBdr : "none", textAlign:"center" }}>
+                <div style={{ fontSize:"11px", color:txtSub, marginBottom:"10px", fontFamily:"'Playfair Display', Georgia, serif", fontStyle:"italic", opacity:0.5 }}>
+                  {s.n}
                 </div>
-                <div style={{ fontSize:"13px", fontStyle:"italic", fontFamily:"'Playfair Display', Georgia, serif", marginBottom:"4px", color:txtMain }}>
+                <div style={{ fontSize:"12px", fontStyle:"italic", fontFamily:"'Playfair Display', Georgia, serif", marginBottom:"6px", color:txtMain }}>
                   {s.title}
                 </div>
-                <div style={{ fontSize:"10px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
+                <div style={{ fontSize:"10px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300", lineHeight:"1.6" }}>
                   {s.sub}
                 </div>
               </div>
