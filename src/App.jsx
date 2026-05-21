@@ -9115,27 +9115,6 @@ export default function App() {
 
       if (error) { setOrderError(error.message); setOrderLoading(false); return; }
 
-      // Charge the card via backend
-      const chargeRes = await fetch("/api/create-payment-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paymentMethodId: paymentMethod.id,
-          amount: prod.prices[currency] || prod.prices.NZD,
-          currency,
-          description: `The Day We — ${prod.label} ${prod.sub}`,
-          custName, custEmail,
-        })
-      });
-      const chargeData = await chargeRes.json();
-      if (!chargeRes.ok) throw new Error(chargeData.error || "Payment failed");
-
-      // Handle 3D Secure if required
-      if (chargeData.requiresAction) {
-        const { error: actionError } = await stripe.handleCardAction(chargeData.clientSecret);
-        if (actionError) throw new Error(actionError.message);
-      }
-
       const sizeKey  = prod.size || "8x10";
 
       const order = {
