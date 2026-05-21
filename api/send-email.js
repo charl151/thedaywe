@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const OWNER_EMAIL    = "thedaywe@gmail.com";
-    const FROM_EMAIL     = "orders@thedaywe.com";
+    const FROM_EMAIL     = "onboarding@resend.dev"; // temporary until thedaywe.com domain is verified
 
     const firstName = (toName || "").split(" ")[0] || "there";
 
