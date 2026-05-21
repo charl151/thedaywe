@@ -8604,7 +8604,7 @@ function computeStars(dateStr, timeStr, lat, lon) {
 function calcPosterHeight(W, sc, opts) {
   const { title, locationName, showDate, showCoords, showFootnote } = opts;
   const PAD = 42*sc, skyR = W * 0.43, skyY = PAD + skyR + 24*sc;
-  const textY = skyY + skyR + 55*sc;
+  const textY = skyY + skyR + 70*sc;
   let ty = textY + 14*sc;
   if (title) ty += 24*sc;
   if (locationName) ty += 14*sc;
@@ -8708,24 +8708,21 @@ function drawPoster(canvas, opts) {
   ctx.stroke();
   ctx.restore();
 
-  const textY = skyY + skyR + 55*sc;
+  const textY = skyY + skyR + 70*sc;
   ctx.textAlign = "center";
-  ctx.strokeStyle = S.divColor; ctx.lineWidth = 0.7*sc;
-  ctx.beginPath(); ctx.moveTo(W*0.2, textY-8*sc); ctx.lineTo(W*0.8, textY-8*sc); ctx.stroke();
-
-  let ty = textY + 14*sc;
+  let ty = textY;
 
   // Names — large italic script (like "Maria & Oliver")
   if (names && names.trim()) {
     ctx.fillStyle = S.textColor;
-    ctx.font = "italic " + (32*sc) + "px 'Playfair Display', Georgia, serif";
-    ctx.fillText(names.trim(), W/2, ty); ty += 70*sc;
+    ctx.font = "italic " + (36*sc) + "px 'Playfair Display', Georgia, serif";
+    ctx.fillText(names.trim(), W/2, ty); ty += 60*sc;
   }
 
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (13*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (11*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
@@ -8738,7 +8735,7 @@ function drawPoster(canvas, opts) {
       cx += charWidths[i] + spacing;
     });
     ctx.globalAlpha = 1.0;
-    ty += 36*sc;
+    ty += 48*sc;
   }
   // Location | Date on one line (like "CHICAGO, IL | MAY 8, 2022")
   const locPart = locationName ? locationName.toUpperCase() : "";
@@ -8753,13 +8750,13 @@ function drawPoster(canvas, opts) {
     ctx.fillStyle = S.subColor;
     ctx.font = "500 " + (11*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.8;
-    ctx.fillText(locDateLine, W/2, ty); ty += 36*sc;
+    ctx.fillText(locDateLine, W/2, ty); ty += 44*sc;
     ctx.globalAlpha = 1.0;
   }
   if (showCoords) {
     ctx.fillStyle = S.subColor;
     ctx.font = "300 " + (10*sc) + "px 'Inter', sans-serif";
-    ctx.globalAlpha = 0.6;
+    ctx.globalAlpha = 0.5;
     ctx.fillText(fmtCoords(lat, lon), W/2, ty);
     ctx.globalAlpha = 1.0;
     ty += 14*sc;
