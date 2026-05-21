@@ -9061,12 +9061,14 @@ export default function App() {
         email: order.custEmail,
       }
     };
-    const res = await fetch("/api/submit-gelato", {
+    const res = await fetch("https://order.gelatoapis.com/v4/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-API-KEY": GELATO_KEY },
       body: JSON.stringify(body)
     });
-    if (!res.ok) { const err = await res.text(); console.error("Gelato error:", err); }
+    if (!res.ok) { const err = await res.text(); console.error("Gelato error:", err); return null; }
+    const gelatoData = await res.json();
+    return gelatoData.id || null;
   }
 
   // ── Stripe payment ───────────────────────────────────────────────────────────
@@ -9172,7 +9174,12 @@ export default function App() {
       if (prod.physical) {
         const posterDataUrl = generateCleanPoster(sizeKey);
         const posterUrl = await uploadToCloudinary(posterDataUrl);
-        await submitToGelato(order, posterUrl);
+        const gelatoOrderId = await submitToGelato(order, posterUrl);
+        if (gelatoOrderId) {
+          await supabase.from("orders")
+            .update({ gelato_order_id: gelatoOrderId })
+            .eq("order_number", orderNum);
+        }
       }
 
       // Email is non-fatal — Gelato order already placed, Supabase has the record
