@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Allow CORS from any origin (it's our own frontend calling this)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -13,6 +12,7 @@ export default async function handler(req, res) {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const OWNER_EMAIL    = "thedaywe@gmail.com";
     const FROM_EMAIL     = "orders@thedaywe.com";
+    const REPLY_TO       = "thedayweprints@gmail.com";
 
     const firstName = (toName || "").split(" ")[0] || "there";
 
@@ -69,6 +69,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from: `The Day We <${FROM_EMAIL}>`,
+        reply_to: REPLY_TO,
         to: [toEmail],
         bcc: [OWNER_EMAIL],
         subject: `Your Star Map is Ready — Order ${orderNumber}`,
