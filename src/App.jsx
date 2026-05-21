@@ -9340,9 +9340,9 @@ export default function App() {
                   boxShadow:"0 4px 24px rgba(0,0,0,0.3)" }}>
                 Create My Star Map →
               </button>
-              <p style={{ fontSize:"10px", color:"rgba(255,255,255,0.5)", marginTop:"12px",
-                fontFamily:"'Inter', sans-serif" }}>
-                {formatPrice(PRODUCTS.digital, currency)} · Instant PDF delivery
+              <p style={{ fontSize:"13px", color:"rgba(255,255,255,0.8)", marginTop:"12px",
+                fontFamily:"'Inter', sans-serif", letterSpacing:"0.05em" }}>
+                <strong style={{ fontSize:"18px", color:"#ffffff" }}>{formatPrice(PRODUCTS.digital, currency)}</strong> · Instant PDF delivery · Print anywhere
               </p>
             </div>
           </div>
@@ -9569,7 +9569,7 @@ export default function App() {
                   <label style={lbl}>Names</label>
                   <input style={{ ...inp, marginBottom:"10px" }} type="text" value={names}
                     onChange={e => setNames(e.target.value)} placeholder="e.g. Maria & Oliver" />
-                  <label style={lbl}>Title</label>
+                  <label style={lbl}>Title <span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}>— choose below or type your own</span></label>
                   <input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
                     onChange={e => setTitle(e.target.value)} placeholder="The Night Our Stars Aligned" />
                   <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"12px" }}>
@@ -9584,15 +9584,15 @@ export default function App() {
                       "Under the Same Sky",
                     ].map(s => (
                       <button key={s} onClick={() => setTitle(s)}
-                        style={{ padding:"5px 10px", borderRadius:"20px", border:"1px solid "+(title===s ? accent : cardBdr),
+                        style={{ padding:"6px 12px", borderRadius:"20px", border:"1px solid "+(title===s ? accent : cardBdr),
                           background: title===s ? accent : "transparent", color: title===s ? accentFg : txtSub,
-                          fontSize:"9px", cursor:"pointer", fontFamily:"'Georgia', serif", fontStyle:"italic",
+                          fontSize:"11px", cursor:"pointer", fontFamily:"'Georgia', serif", fontStyle:"italic",
                           letterSpacing:"0.05em", transition:"all 0.15s" }}>
                         {s}
                       </button>
                     ))}
                   </div>
-                  <label style={lbl}>Footnote</label>
+                  <label style={lbl}>Footnote <span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}>— auto-generated or add your own</span></label>
                   <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"8px" }}>
                     <input type="checkbox" id="auto-fn" checked={useAuto} onChange={e => setUseAuto(e.target.checked)}
                       style={{ accentColor: accent }} />
