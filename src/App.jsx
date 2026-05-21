@@ -8603,7 +8603,7 @@ function computeStars(dateStr, timeStr, lat, lon) {
 
 function calcPosterHeight(W, sc, opts) {
   const { title, locationName, showDate, showCoords, showFootnote } = opts;
-  const PAD = 42*sc, skyR = W*0.415, skyY = PAD + skyR + 20*sc;
+  const PAD = 42*sc, skyR = W*0.36, skyY = PAD + skyR + 24*sc;
   const textY = skyY + skyR + 26*sc;
   let ty = textY + 14*sc;
   if (title) ty += 24*sc;
@@ -8619,7 +8619,7 @@ function drawPoster(canvas, opts) {
   const S   = STYLES[styleName];
   const ctx = canvas.getContext("2d");
   const W   = canvas.width, H = canvas.height;
-  const PAD = 42*sc, skyR = W*0.415, skyX = W/2, skyY = PAD + skyR + 20*sc;
+  const PAD = 42*sc, skyR = W*0.36, skyX = W/2, skyY = PAD + skyR + 24*sc;
 
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = S.posterBg;
@@ -8725,7 +8725,7 @@ function drawPoster(canvas, opts) {
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (7*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (9*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
@@ -8751,14 +8751,14 @@ function drawPoster(canvas, opts) {
   const locDateLine = [locPart, datePart].filter(Boolean).join("  |  ");
   if (locDateLine) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (7*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (8.5*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.8;
     ctx.fillText(locDateLine, W/2, ty); ty += 14*sc;
     ctx.globalAlpha = 1.0;
   }
   if (showCoords) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "300 " + (6.5*sc) + "px 'Inter', sans-serif";
+    ctx.font = "300 " + (7.5*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.6;
     ctx.fillText(fmtCoords(lat, lon), W/2, ty);
     ctx.globalAlpha = 1.0;
@@ -9817,7 +9817,7 @@ export default function App() {
                       downloadUrls: pdfUrls,
                       title, locationName, dateStr, styleName,
                     });
-                    await markCodeUsed(codeValid.code);
+                    if (codeValid) await markCodeUsed(codeValid.code);
                     await saveOrder({ order_number: codeValid.code, status: "sent", email: custEmailInput, name: custNameInput, code: codeValid.code, product: "digital", style: styleName, names, title, location_name: locationName, date_str: dateStr, lat, lon });
                     setSentToEmail(custEmailInput);
                     setSent(true);
@@ -9908,15 +9908,24 @@ export default function App() {
                       status: "pending"
                     });
                     await submitToGelato(order, imageUrl);
-                    if (codeValid) await markCodeUsed(codeValid.code);
+                    // Generate PDF so customer gets a digital keepsake alongside their print
+                    const physPdfUrls = {};
+                    for (const [key] of Object.entries(PRINT_SIZES)) {
+                      const pngDataUrl = generateCleanPoster(key);
+                      const sizeName = key === "8x10" ? "8x10-inch-20x25cm" : "12x16-inch-30x40cm";
+                      const pdfBlob = await generatePdfBlob(pngDataUrl, key);
+                      const url = await uploadPdfToCloudinary(pdfBlob, `thedaywe-starmap-${sizeName}.pdf`);
+                      physPdfUrls[key] = url;
+                    }
                     await sendResendEmail({
                       toName: custName, toEmail: custEmail,
                       orderNumber: orderNum,
-                      isDigital: false,
+                      isDigital: true,
                       isPhysical: true,
-                      downloadUrls: null,
+                      downloadUrls: physPdfUrls,
                       title, locationName, dateStr, styleName,
                     });
+                    if (codeValid) await markCodeUsed(codeValid.code);
                     setCompletedOrder({ ...order, physical: true });
                     setOrderStep("complete");
                   } catch(e) {
