@@ -8484,6 +8484,7 @@ async function validateCode(code) {
   }
 
   // First time use — create it in Supabase
+  console.log("Etsy order detected, creating code:", code);
   const createRes = await fetch(
     `${SUPABASE_URL}/rest/v1/codes`,
     {
@@ -8494,7 +8495,7 @@ async function validateCode(code) {
         "Content-Type": "application/json",
         "Prefer": "return=representation"
       },
-      body: JSON.stringify({ code, type: "digital", used: false, source: "etsy" })
+      body: JSON.stringify({ code, type: "digital", used: false })
     }
   );
   const created = await createRes.json();
