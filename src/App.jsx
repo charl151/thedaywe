@@ -8777,15 +8777,15 @@ function drawPoster(canvas, opts) {
     ctx.translate(W/2, H/2);
     ctx.rotate(-Math.PI / 5);
     ctx.textAlign = "center";
+    const wmColor = S.dark ? "#ffffff" : "#000000";
     const lines = [-H*0.3, -H*0.05, H*0.2];
     lines.forEach(offset => {
       ctx.font = "bold " + (18*sc) + "px 'Inter', sans-serif";
-      ctx.globalAlpha = 0.22;
-      ctx.fillStyle = "#e8a0b0";
+      ctx.globalAlpha = S.dark ? 0.18 : 0.13;
+      ctx.fillStyle = wmColor;
       ctx.fillText("PREVIEW — thedaywe.com", 0, offset);
       ctx.font = "bold " + (13*sc) + "px 'Inter', sans-serif";
-      ctx.globalAlpha = 0.16;
-      ctx.fillStyle = "#e8a0b0";
+      ctx.globalAlpha = S.dark ? 0.12 : 0.08;
       ctx.fillText("NOT FOR PRINT USE", 0, offset + 22*sc);
     });
     ctx.globalAlpha = 1.0;
@@ -9716,7 +9716,7 @@ export default function App() {
           <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
             {/* Canvas preview */}
             <div style={{ position:"relative", marginBottom:"10px" }}>
-              <canvas ref={previewRef} width={400} height={860}
+              <canvas ref={previewRef} width={400} height={720}
                 style={{ width:"100%", height:"auto", borderRadius:"12px", display:"block",
                   boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} />
               <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.05em", lineHeight:"1.6" }}>
