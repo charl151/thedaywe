@@ -9229,7 +9229,7 @@ export default function App() {
             </div>
             <div style={{ fontSize:"11px", color:"#555", marginBottom:"8px", lineHeight:"1.8" }}>
               💻 Right-click image → Save image as<br/>
-              📱 Tap & hold → Save to Photos
+              📱 Tap &amp; hold → Save to Photos
             </div>
             <button onClick={() => setDownloadUrl(null)}
               style={{ padding:"9px 24px", borderRadius:"7px", background:"transparent",
@@ -9591,7 +9591,7 @@ export default function App() {
                   )}
                   <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"4px" }}>
                     {[["showLines","Constellations"],["showGrid","Grid"],["showCoords","Coordinates"],
-                      ["showDate","Date"],["showTime","Time"]].map(([key, label]) => (
+                      ["showDate","Date"],["showTime","Time"],["showFootnote","Footnote"]].map(([key, label]) => (
                       <label key={key} style={{ display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:txtSub, cursor:"pointer", fontFamily:"'Georgia', serif" }}>
                         <input type="checkbox"
                           checked={key==="showLines"?showLines:key==="showGrid"?showGrid:key==="showCoords"?showCoords:key==="showDate"?showDate:key==="showTime"?showTime:showFootnote}
