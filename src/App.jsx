@@ -9716,12 +9716,16 @@ export default function App() {
           <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
             {/* Canvas preview */}
             <div style={{ position:"relative", marginBottom:"10px" }}>
-              <canvas ref={previewRef} width={400} height={860}
+              <canvas ref={previewRef} width={400} height={1000}
                 style={{ width:"100%", height:"auto", borderRadius:"12px", display:"block",
                   boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} />
-              <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.05em", lineHeight:"1.6" }}>
-                {stars.filter(s => s.alt > 0).length} stars visible · screen preview only<br/>
-                <span style={{ opacity:0.7 }}>✦ Check names &amp; title carefully · colours may vary in print · your PDF will be higher quality</span>
+              <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.1em" }}>
+                {stars.filter(s => s.alt > 0).length} stars visible
+              </div>
+              <div style={{ textAlign:"center", fontSize:"10px", color:txtSub, marginTop:"8px", lineHeight:"1.7",
+                padding:"10px 16px", background: cardBg, borderRadius:"8px", border:"1px solid "+cardBdr }}>
+                ✦ This is a screen preview only — your final PDF will be higher quality.<br/>
+                Please check your names, title and date carefully before confirming.
               </div>
             </div>
 
