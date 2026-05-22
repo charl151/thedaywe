@@ -8460,12 +8460,45 @@ async function sendResendEmail({ toName, toEmail, orderNumber, isDigital, isPhys
 }
 
 async function validateCode(code) {
+  // First check pre-generated codes in Supabase
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&used=eq.false&select=code,type`,
     { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
   );
   const data = await res.json();
-  return data && data.length > 0 ? data[0] : null;
+  if (data && data.length > 0) return data[0];
+
+  // If not found, check if it looks like an Etsy order number (all digits, 10-13 chars)
+  const isEtsyOrder = /^[0-9]{10,13}$/.test(code.replace(/\s/g, ""));
+  if (!isEtsyOrder) return null;
+
+  // Check if this Etsy order number has already been used
+  const usedRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&select=code,used`,
+    { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
+  );
+  const usedData = await usedRes.json();
+  if (usedData && usedData.length > 0) {
+    // Already exists — check if used
+    return usedData[0].used ? null : usedData[0];
+  }
+
+  // First time use — create it in Supabase
+  const createRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/codes`,
+    {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify({ code, type: "digital", used: false, source: "etsy" })
+    }
+  );
+  const created = await createRes.json();
+  return created && created.length > 0 ? created[0] : null;
 }
 
 async function markCodeUsed(code) {
