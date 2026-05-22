@@ -8387,7 +8387,7 @@ async function uploadToCloudinary(dataUrl) {
 async function generatePdfBlob(pngDataUrl, sizeKey) {
   // Dynamically load jsPDF from CDN
   if (!window.jspdf) {
-    await new Promise((resolve, reject) =&gt; {
+    await new Promise((resolve, reject) => {
       const s = document.createElement("script");
       s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
       s.onload = resolve; s.onerror = reject;
@@ -8401,7 +8401,7 @@ async function generatePdfBlob(pngDataUrl, sizeKey) {
     "12x16": { w: 304.8, h: 406.4 },
   };
   const mm = mmSizes[sizeKey] || mmSizes["8x10"];
-  const pdf = new jsPDF({ orientation: mm.h &gt; mm.w ? "portrait" : "landscape", unit: "mm", format: [mm.w, mm.h] });
+  const pdf = new jsPDF({ orientation: mm.h > mm.w ? "portrait" : "landscape", unit: "mm", format: [mm.w, mm.h] });
   pdf.addImage(pngDataUrl, "PNG", 0, 0, mm.w, mm.h, undefined, "FAST");
   return pdf.output("blob");
 }
@@ -8432,21 +8432,21 @@ async function sendResendEmail({ toName, toEmail, orderNumber, isDigital, isPhys
 async function validateCode(code) {
   // First check pre-generated codes in Supabase
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&amp;used=eq.false&amp;select=code,type`,
+    `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&used=eq.false&select=code,type`,
     { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
   );
   const data = await res.json();
-  if (data &amp;&amp; data.length &gt; 0) return data[0];
+  if (data && data.length > 0) return data[0];
   // If not found, check if it looks like an Etsy order number (all digits, 10-13 chars)
   const isEtsyOrder = /^[0-9]{10,13}$/.test(code.replace(/\s/g, ""));
   if (!isEtsyOrder) return null;
   // Check if this Etsy order number has already been used
   const usedRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&amp;select=code,used`,
+    `${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(code)}&select=code,used`,
     { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
   );
   const usedData = await usedRes.json();
-  if (usedData &amp;&amp; usedData.length &gt; 0) {
+  if (usedData && usedData.length > 0) {
     // Already exists — check if used
     return usedData[0].used ? null : usedData[0];
   }
@@ -8466,7 +8466,7 @@ async function validateCode(code) {
     }
   );
   const created = await createRes.json();
-  return created &amp;&amp; created.length &gt; 0 ? created[0] : null;
+  return created && created.length > 0 ? created[0] : null;
 }
 async function markCodeUsed(code) {
   await fetch(
@@ -8512,7 +8512,7 @@ function getAltAz(ra, dec, lat, lon, jd) {
   const alt = Math.asin(Math.max(-1, Math.min(1, sA)));
   const cAz = (Math.sin(dR) - Math.sin(alt)*Math.sin(lR)) / (Math.cos(alt)*Math.cos(lR));
   let az    = Math.acos(Math.max(-1, Math.min(1, cAz)));
-  if (Math.sin(ha) &gt; 0) az = 2*Math.PI - az;
+  if (Math.sin(ha) > 0) az = 2*Math.PI - az;
   return { alt: r2d(alt), az: r2d(az) };
 }
 function project(alt, az, R) {
@@ -8520,25 +8520,25 @@ function project(alt, az, R) {
   const rho = R * Math.cos(d2r(a)) / (1 + Math.sin(d2r(a)));
   const x   = rho * Math.sin(d2r(az));
   const y   = -rho * Math.cos(d2r(az));
-  if (x*x + y*y &gt; R*R*1.01) return null;
+  if (x*x + y*y > R*R*1.01) return null;
   return { x, y };
 }
 function sSize(mag, sc) {
-  if (mag &lt; 0)  return 8.5*sc;
-  if (mag &lt; 1)  return 6.5*sc;
-  if (mag &lt; 2)  return 4.5*sc;
-  if (mag &lt; 3)  return 2.8*sc;
-  if (mag &lt; 4)  return 1.8*sc;
-  if (mag &lt; 5)  return 1.1*sc;
+  if (mag < 0)  return 8.5*sc;
+  if (mag < 1)  return 6.5*sc;
+  if (mag < 2)  return 4.5*sc;
+  if (mag < 3)  return 2.8*sc;
+  if (mag < 4)  return 1.8*sc;
+  if (mag < 5)  return 1.1*sc;
   return 0.6*sc;
 }
 function sAlpha(mag) {
-  if (mag &lt; 0)  return 1.0;
-  if (mag &lt; 1)  return 1.0;
-  if (mag &lt; 2)  return 0.95;
-  if (mag &lt; 3)  return 0.82;
-  if (mag &lt; 4)  return 0.62;
-  if (mag &lt; 5)  return 0.44;
+  if (mag < 0)  return 1.0;
+  if (mag < 1)  return 1.0;
+  if (mag < 2)  return 0.95;
+  if (mag < 3)  return 0.82;
+  if (mag < 4)  return 0.62;
+  if (mag < 5)  return 0.44;
   return 0.28;
 }
 function ordinal(n) {
@@ -8551,8 +8551,8 @@ function autoFootnote(loc, ds) {
   return "Stars above " + loc + " on the " + ordinal(d) + " of " + MONTHS[m-1] + ", " + y;
 }
 function fmtCoords(lat, lon) {
-  const la = Math.abs(lat).toFixed(4) + "° " + (lat&gt;=0?"N":"S");
-  const lo = Math.abs(lon).toFixed(4) + "° " + (lon&gt;=0?"E":"W");
+  const la = Math.abs(lat).toFixed(4) + "° " + (lat>=0?"N":"S");
+  const lo = Math.abs(lon).toFixed(4) + "° " + (lon>=0?"E":"W");
   return la + "  " + lo;
 }
 function clipShape(ctx, shape, cx, cy, r) {
@@ -8570,7 +8570,7 @@ function clipShape(ctx, shape, cx, cy, r) {
     ctx.moveTo(cx, cy-r); ctx.lineTo(cx+r*0.68, cy);
     ctx.lineTo(cx, cy+r); ctx.lineTo(cx-r*0.68, cy); ctx.closePath();
   } else if (shape === "hexagon") {
-    for (let i=0; i&lt;6; i++) {
+    for (let i=0; i<6; i++) {
       const a = (Math.PI/3)*i - Math.PI/6;
       i ? ctx.lineTo(cx+r*Math.cos(a), cy+r*Math.sin(a)) : ctx.moveTo(cx+r*Math.cos(a), cy+r*Math.sin(a));
     }
@@ -8584,7 +8584,7 @@ function computeStars(dateStr, timeStr, lat, lon) {
   const utcHr      = ((hr - lon/15) % 24 + 24) % 24;
   const date       = new Date(Date.UTC(y, mo-1, day, Math.floor(utcHr), mn, 0));
   const jd         = date.getTime() / 86400000 + 2440587.5;
-  return ALL.map(s =&gt; {
+  return ALL.map(s => {
     const { alt, az } = getAltAz(s[0], s[1], lat, lon, jd);
     return { mag: s[2], name: s[3], alt, az };
   });
@@ -8624,14 +8624,14 @@ function drawPoster(canvas, opts) {
     ctx.strokeStyle = S.lineColor.replace(/[\d.]+\)$/, "0.7)");
     ctx.lineWidth = 1.5*sc;
     ctx.beginPath(); ctx.arc(skyX, skyY, skyR, 0, Math.PI*2); ctx.stroke();
-    for (let i = 1; i &lt;= 5; i++) {
+    for (let i = 1; i <= 5; i++) {
       ctx.strokeStyle = ringColor;
       ctx.lineWidth = 0.8*sc;
       ctx.beginPath();
       ctx.arc(skyX, skyY, skyR * (i/6), 0, Math.PI*2);
       ctx.stroke();
     }
-    for (let az = 0; az &lt; 360; az += 15) {
+    for (let az = 0; az < 360; az += 15) {
       ctx.strokeStyle = az % 90 === 0 ? ringColor : spokeColor;
       ctx.lineWidth = az % 90 === 0 ? 1.0*sc : 0.6*sc;
       ctx.beginPath();
@@ -8641,11 +8641,11 @@ function drawPoster(canvas, opts) {
     }
   }
   if (showLines) {
-    CONST_LINES.forEach(({ segs }) =&gt; {
-      segs.forEach(([ia, ib]) =&gt; {
+    CONST_LINES.forEach(({ segs }) => {
+      segs.forEach(([ia, ib]) => {
         const sa = stars[ia], sb = stars[ib];
         if (!sa || !sb) return;
-        if (sa.alt &lt; 0 || sb.alt &lt; 0) return;
+        if (sa.alt < 0 || sb.alt < 0) return;
         const pa = project(sa.alt, sa.az, skyR);
         const pb = project(sb.alt, sb.az, skyR);
         if (!pa || !pb) return;
@@ -8658,13 +8658,13 @@ function drawPoster(canvas, opts) {
       });
     });
   }
-  stars.forEach(star =&gt; {
+  stars.forEach(star => {
     const p = project(star.alt, star.az, skyR);
     if (!p) return;
     const sx = skyX+p.x, sy = skyY+p.y;
     const sz = sSize(star.mag, sc);
     const al = sAlpha(star.mag);
-    if (star.mag &lt; 1) {
+    if (star.mag < 1) {
       const glowR = sz * 2.5;
       const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, glowR);
       g.addColorStop(0, "rgba(" + S.starRGB + "," + (al * 0.25) + ")");
@@ -8689,8 +8689,8 @@ function drawPoster(canvas, opts) {
   const textY = skyY + skyR + 70*sc;
   ctx.textAlign = "center";
   let ty = textY;
-  // Names — large italic script (like "Maria &amp; Oliver")
-  if (names &amp;&amp; names.trim()) {
+  // Names — large italic script (like "Maria & Oliver")
+  if (names && names.trim()) {
     ctx.fillStyle = S.textColor;
     ctx.font = "italic " + (36*sc) + "px 'Playfair Display', Georgia, serif";
     ctx.fillText(names.trim(), W/2, ty); ty += 60*sc;
@@ -8703,10 +8703,10 @@ function drawPoster(canvas, opts) {
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
     const spacing = 2.2*sc;
-    const charWidths = upper.split("").map(c =&gt; ctx.measureText(c).width);
-    const totalW = charWidths.reduce((a,b) =&gt; a+b, 0) + spacing*(upper.length-1);
+    const charWidths = upper.split("").map(c => ctx.measureText(c).width);
+    const totalW = charWidths.reduce((a,b) => a+b, 0) + spacing*(upper.length-1);
     let cx = W/2 - totalW/2;
-    upper.split("").forEach((c, i) =&gt; {
+    upper.split("").forEach((c, i) => {
       ctx.fillText(c, cx + charWidths[i]/2, ty);
       cx += charWidths[i] + spacing;
     });
@@ -8715,11 +8715,11 @@ function drawPoster(canvas, opts) {
   }
   // Location | Date on one line (like "CHICAGO, IL | MAY 8, 2022")
   const locPart = locationName ? locationName.toUpperCase() : "";
-  const datePart = (() =&gt; {
+  const datePart = (() => {
     if (!showDate || !dateStr) return "";
     const [y,m,d] = dateStr.split("-").map(Number);
     const base = MONTHS[m-1].toUpperCase() + " " + d + ", " + y;
-    return showTime &amp;&amp; timeStr ? base + " · " + timeStr : base;
+    return showTime && timeStr ? base + " · " + timeStr : base;
   })();
   const locDateLine = [locPart, datePart].filter(Boolean).join("  |  ");
   if (locDateLine) {
@@ -8729,7 +8729,7 @@ function drawPoster(canvas, opts) {
     // Auto-shrink font if text too wide
     let locFontSize = 15*sc;
     ctx.font = "500 " + locFontSize + "px 'Inter', sans-serif";
-    while (ctx.measureText(locDateLine).width &gt; W * 0.85 &amp;&amp; locFontSize &gt; 8*sc) {
+    while (ctx.measureText(locDateLine).width > W * 0.85 && locFontSize > 8*sc) {
       locFontSize -= 0.5*sc;
       ctx.font = "500 " + locFontSize + "px 'Inter', sans-serif";
     }
@@ -8758,7 +8758,7 @@ function drawPoster(canvas, opts) {
     ctx.rotate(-Math.PI / 5);
     ctx.textAlign = "center";
     const lines = [-H*0.3, -H*0.05, H*0.2];
-    lines.forEach(offset =&gt; {
+    lines.forEach(offset => {
       ctx.font = "bold " + (18*sc) + "px 'Inter', sans-serif";
       ctx.globalAlpha = 0.22;
       ctx.fillStyle = "#e8a0b0";
@@ -8837,36 +8837,36 @@ export default function App() {
   const [orderLoading,  setOrderLoading] = useState(false);
   const [completedOrder,setCompletedOrder] = useState(null);
   // Cycle hero taglines
-  useEffect(() =&gt; {
-    const interval = setInterval(() =&gt; setTaglineIdx(i =&gt; (i + 1) % 3), 3500);
-    return () =&gt; clearInterval(interval);
+  useEffect(() => {
+    const interval = setInterval(() => setTaglineIdx(i => (i + 1) % 3), 3500);
+    return () => clearInterval(interval);
   }, []);
   const lat = parseFloat(latStr) || 0;
   const lon = parseFloat(lonStr) || 0;
   const S   = STYLES[styleName];
   const isDark = S.dark;
   const computedFootnote = useAuto ? autoFootnote(locationName, dateStr) : footnote;
-  const availableProducts = useMemo(() =&gt; {
+  const availableProducts = useMemo(() => {
     return Object.fromEntries(
-      Object.entries(PRODUCTS).filter(([k, p]) =&gt; {
+      Object.entries(PRODUCTS).filter(([k, p]) => {
         if (!p.framed) return true;
         return FRAMED_COUNTRIES.includes(
-          Object.entries(CURRENCIES).find(([,c]) =&gt; c.countries.includes(
+          Object.entries(CURRENCIES).find(([,c]) => c.countries.includes(
             Object.entries({NZD:["NZ"],AUD:["AU"],GBP:["GB"],USD:["US","CA"],EUR:["DE","FR","IT","ES","NL","BE","AT","IE","PT","FI","GR"]}
-            ).find(([code]) =&gt; code === currency)?.[1]?.[0] || "NZ"
+            ).find(([code]) => code === currency)?.[1]?.[0] || "NZ"
           ))?.[1]?.countries[0] || "NZ"
         );
       })
     );
   }, [currency]);
-  const stars = useMemo(() =&gt; computeStars(dateStr, timeStr, lat, lon), [dateStr, timeStr, lat, lon]);
-  const opts  = useMemo(() =&gt; ({
+  const stars = useMemo(() => computeStars(dateStr, timeStr, lat, lon), [dateStr, timeStr, lat, lon]);
+  const opts  = useMemo(() => ({
     stars, styleName, shape, names, title, footnote: computedFootnote,
     locationName, dateStr, timeStr, lat, lon,
     showLines, showGrid, showCoords, showDate, showTime,
-    watermark: !ownerMode &amp;&amp; !codeValid &amp;&amp; !sent
+    watermark: !ownerMode && !codeValid && !sent
   }), [stars, styleName, shape, names, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
-  const drawFrame = useCallback(() =&gt; {
+  const drawFrame = useCallback(() => {
     const canvas = previewRef.current;
     if (!canvas) return;
     const sc = canvas.width / 400;
@@ -8875,15 +8875,15 @@ export default function App() {
     drawPoster(canvas, { ...opts, sc });
     animRef.current = requestAnimationFrame(drawFrame);
   }, [opts]);
-  useEffect(() =&gt; {
-    fetchUserCountry().then(country =&gt; setCurrency(detectCurrency(country)));
+  useEffect(() => {
+    fetchUserCountry().then(country => setCurrency(detectCurrency(country)));
     // Preload fonts so canvas renders them correctly
     const fonts = [
       new FontFace("Cormorant Garamond", "url(https://fonts.gstatic.com/s/cormorantgaramond/v22/co3YmX5slCNuHLi8bLeY9MK7whWMhyjornFLsS6V7w.woff2)", { style:"italic", weight:"300" }),
       new FontFace("Inter", "url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)", { weight:"300" }),
       new FontFace("Inter", "url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)", { weight:"500" }),
     ];
-    fonts.forEach(f =&gt; f.load().then(loaded =&gt; document.fonts.add(loaded)).catch(() =&gt; {}));
+    fonts.forEach(f => f.load().then(loaded => document.fonts.add(loaded)).catch(() => {}));
   // Auto-detect code in URL e.g. thedaywe.com?code=ABC123
     const params = new URLSearchParams(window.location.search);
     const urlCode = params.get("code");
@@ -8892,7 +8892,7 @@ export default function App() {
       setCodeInput(upper);
       setJourney("code");
       // Auto-validate it
-      validateCode(upper).then(result =&gt; {
+      validateCode(upper).then(result => {
         if (result) {
           setCodeValid(result);
           if (result.type === "physical") setJourney("print");
@@ -8901,15 +8901,15 @@ export default function App() {
         } else {
           setCodeError("This code is invalid or has already been used.");
         }
-      }).catch(() =&gt; setCodeError("Could not validate code. Please try again."));
+      }).catch(() => setCodeError("Could not validate code. Please try again."));
     }
   }, []);
-  useEffect(() =&gt; {
+  useEffect(() => {
     if (step === 3) {
       cancelAnimationFrame(animRef.current);
       animRef.current = requestAnimationFrame(drawFrame);
     }
-    return () =&gt; cancelAnimationFrame(animRef.current);
+    return () => cancelAnimationFrame(animRef.current);
   }, [drawFrame, step]);
   async function searchLocation() {
     const q = locSearch.trim();
@@ -8917,12 +8917,12 @@ export default function App() {
     setLocLoading(true); setLocResults([]); setLocError("");
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&amp;format=json&amp;limit=5&amp;addressdetails=1`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
         { headers: { "Accept-Language": "en", "User-Agent": "TheDayWe/1.0" } }
       );
       const data = await res.json();
       if (!data.length) { setLocError("No results found."); setLocLoading(false); return; }
-      const results = data.map(r =&gt; ({
+      const results = data.map(r => ({
         name: r.display_name.split(",").slice(0,3).join(",").trim(),
         lat:  parseFloat(r.lat),
         lon:  parseFloat(r.lon),
@@ -8950,7 +8950,7 @@ export default function App() {
   }
   async function download() {
     setDownloading(true);
-    await new Promise(resolve =&gt; setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
     try {
       const dataUrl = generateCleanPoster(printSize);
       setDownloadUrl(dataUrl);
@@ -8983,7 +8983,7 @@ export default function App() {
     }
     setCodeLoading(false);
   }
-  // ── Email &amp; Gelato ───────────────────────────────────────────────────────────
+  // ── Email & Gelato ───────────────────────────────────────────────────────────
   async function submitToGelato(order, imageDataUrl) {
     const sku = GELATO_SKUS[order.product];
     if (!sku) return;
@@ -9039,7 +9039,7 @@ export default function App() {
     setOrderLoading(true); setOrderError("");
     try {
       if (!window.Stripe) {
-        await new Promise((res, rej) =&gt; {
+        await new Promise((res, rej) => {
           const s = document.createElement("script");
           s.src = "https://js.stripe.com/v3/";
           s.onload = res; s.onerror = rej;
@@ -9055,7 +9055,7 @@ export default function App() {
       window._cardElement    = cardElement;
       window._orderNum       = orderNum;
       setOrderStep("paying");
-      setTimeout(() =&gt; {
+      setTimeout(() => {
         const mount = document.getElementById("stripe-card-element");
         if (mount) cardElement.mount("#stripe-card-element");
       }, 100);
@@ -9198,360 +9198,360 @@ export default function App() {
     transition:"opacity 0.2s"
   };
   // Determine if user can download — must have paid, redeemed code, or be owner
-  const canDownload = ownerMode || codeValid || (completedOrder &amp;&amp; !PRODUCTS[completedOrder?.product]?.physical);
-  const isPhysicalJourney = journey === "print" || (codeValid &amp;&amp; codeValid.type === "physical");
+  const canDownload = ownerMode || codeValid || (completedOrder && !PRODUCTS[completedOrder?.product]?.physical);
+  const isPhysicalJourney = journey === "print" || (codeValid && codeValid.type === "physical");
   return (
-    &lt;div style={{ minHeight:"100vh", background:appBg, fontFamily:"'Georgia', serif", color:txtMain, display:"flex", flexDirection:"column", transition:"background 0.3s" }}&gt;
-      &lt;style&gt;{`
+    <div style={{ minHeight:"100vh", background:appBg, fontFamily:"'Georgia', serif", color:txtMain, display:"flex", flexDirection:"column", transition:"background 0.3s" }}>
+      <style>{`
         * { box-sizing:border-box }
         input:focus { border-color: ${accent} !important; }
         button:active { opacity:0.75; }
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&amp;family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&amp;family=Inter:wght@300;400;500&amp;display=swap');
-      `}&lt;/style&gt;
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
+      `}</style>
       {/* Owner download overlay */}
-      {downloadUrl &amp;&amp; (
-        &lt;div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.96)", zIndex:1000,
-          display:"flex", flexDirection:"column", alignItems:"center", overflowY:"auto", padding:"24px 16px" }}&gt;
-          &lt;div style={{ textAlign:"center", color:"#fff", maxWidth:"480px", width:"100%", marginBottom:"20px" }}&gt;
-            &lt;div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:"#2a9a2a", marginBottom:"12px" }}&gt;
+      {downloadUrl && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.96)", zIndex:1000,
+          display:"flex", flexDirection:"column", alignItems:"center", overflowY:"auto", padding:"24px 16px" }}>
+          <div style={{ textAlign:"center", color:"#fff", maxWidth:"480px", width:"100%", marginBottom:"20px" }}>
+            <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:"#2a9a2a", marginBottom:"12px" }}>
               {ownerMode ? "✓ Owner Mode — Clean File" : "✓ Your Star Map is Ready"}
-            &lt;/div&gt;
-            &lt;p style={{ fontSize:"22px", fontStyle:"italic", fontWeight:"300", fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 4px" }}&gt;the day we.&lt;/p&gt;
-            &lt;p style={{ fontSize:"10px", letterSpacing:"0.3em", color:"#666", margin:"0 0 20px" }}&gt;MADE TO BE REMEMBERED&lt;/p&gt;
-            &lt;a href={downloadUrl} download={`thedaywe-${printSize}.png`}
+            </div>
+            <p style={{ fontSize:"22px", fontStyle:"italic", fontWeight:"300", fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 4px" }}>the day we.</p>
+            <p style={{ fontSize:"10px", letterSpacing:"0.3em", color:"#666", margin:"0 0 20px" }}>MADE TO BE REMEMBERED</p>
+            <a href={downloadUrl} download={`thedaywe-${printSize}.png`}
               style={{ display:"inline-block", padding:"14px 36px", borderRadius:"9px",
                 background:"#ffffff", color:"#000", fontSize:"11px", fontWeight:"600",
-                textDecoration:"none", marginBottom:"12px", letterSpacing:"0.14em", textTransform:"uppercase" }}&gt;
+                textDecoration:"none", marginBottom:"12px", letterSpacing:"0.14em", textTransform:"uppercase" }}>
               ↓ Download Your Star Map
-            &lt;/a&gt;
-            &lt;div style={{ fontSize:"10px", color:"#2a9a2a", marginBottom:"16px" }}&gt;
+            </a>
+            <div style={{ fontSize:"10px", color:"#2a9a2a", marginBottom:"16px" }}>
               No watermark · {PRINT_SIZES[printSize].w}×{PRINT_SIZES[printSize].h}px · 300dpi
-            &lt;/div&gt;
-            &lt;div style={{ fontSize:"11px", color:"#555", marginBottom:"8px", lineHeight:"1.8" }}&gt;
-              💻 Right-click image → Save image as&lt;br/&gt;
-              📱 Tap &amp;amp; hold → Save to Photos
-            &lt;/div&gt;
-            &lt;button onClick={() =&gt; setDownloadUrl(null)}
+            </div>
+            <div style={{ fontSize:"11px", color:"#555", marginBottom:"8px", lineHeight:"1.8" }}>
+              💻 Right-click image → Save image as<br/>
+              📱 Tap & hold → Save to Photos
+            </div>
+            <button onClick={() => setDownloadUrl(null)}
               style={{ padding:"9px 24px", borderRadius:"7px", background:"transparent",
-                border:"1px solid #333", color:"#888", fontSize:"11px", cursor:"pointer" }}&gt;
+                border:"1px solid #333", color:"#888", fontSize:"11px", cursor:"pointer" }}>
               ← Back
-            &lt;/button&gt;
-          &lt;/div&gt;
-          &lt;img src={downloadUrl} alt="Star Map"
-            style={{ maxWidth:"420px", width:"100%", display:"block", borderRadius:"6px", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }} /&gt;
-        &lt;/div&gt;
+            </button>
+          </div>
+          <img src={downloadUrl} alt="Star Map"
+            style={{ maxWidth:"420px", width:"100%", display:"block", borderRadius:"6px", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }} />
+        </div>
       )}
       {/* Header */}
-      &lt;div style={{ textAlign:"center", padding:"28px 16px 20px", borderBottom:"1px solid "+cardBdr, background:cardBg, position:"relative" }}&gt;
+      <div style={{ textAlign:"center", padding:"28px 16px 20px", borderBottom:"1px solid "+cardBdr, background:cardBg, position:"relative" }}>
         {/* Brand logo */}
-        &lt;p style={{ fontSize:"9px", letterSpacing:"0.35em", textTransform:"uppercase", color:txtSub, margin:"0 0 6px", fontFamily:"'Georgia', serif" }}&gt;
+        <p style={{ fontSize:"9px", letterSpacing:"0.35em", textTransform:"uppercase", color:txtSub, margin:"0 0 6px", fontFamily:"'Georgia', serif" }}>
           MADE TO BE REMEMBERED
-        &lt;/p&gt;
-        &lt;h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"400", margin:"0 0 6px", letterSpacing:"0.02em",
-          fontStyle:"italic", lineHeight:1.1, fontFamily:"'Playfair Display', Georgia, serif" }}&gt;
+        </p>
+        <h1 style={{ fontSize:"clamp(28px,5vw,40px)", fontWeight:"400", margin:"0 0 6px", letterSpacing:"0.02em",
+          fontStyle:"italic", lineHeight:1.1, fontFamily:"'Playfair Display', Georgia, serif" }}>
           The Day We
-        &lt;/h1&gt;
-        &lt;p style={{ fontSize:"10px", letterSpacing:"0.2em", textTransform:"uppercase", color:txtSub, margin:"0", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}&gt;
+        </h1>
+        <p style={{ fontSize:"10px", letterSpacing:"0.2em", textTransform:"uppercase", color:txtSub, margin:"0", fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
           Personalised star maps for life's defining moments
-        &lt;/p&gt;
+        </p>
         {/* Currency selector */}
-        &lt;div style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", left:"12px" }}&gt;
-          &lt;select value={currency} onChange={e =&gt; setCurrency(e.target.value)}
+        <div style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", left:"12px" }}>
+          <select value={currency} onChange={e => setCurrency(e.target.value)}
             style={{ fontSize:"10px", color:txtSub, background:"transparent", border:"1px solid "+cardBdr,
-              borderRadius:"5px", padding:"3px 6px", cursor:"pointer", fontFamily:"'Georgia', serif", outline:"none" }}&gt;
-            {Object.entries(CURRENCIES).map(([code, c]) =&gt; (
-              &lt;option key={code} value={code}&gt;{c.symbol} {code}&lt;/option&gt;
+              borderRadius:"5px", padding:"3px 6px", cursor:"pointer", fontFamily:"'Georgia', serif", outline:"none" }}>
+            {Object.entries(CURRENCIES).map(([code, c]) => (
+              <option key={code} value={code}>{c.symbol} {code}</option>
             ))}
-          &lt;/select&gt;
-        &lt;/div&gt;
+          </select>
+        </div>
         {/* Etsy logo */}
-        &lt;a href="https://www.etsy.com/shop/TheDayWe" target="_blank" rel="noopener noreferrer"
-          style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", right:"12px", display:"flex", alignItems:"center" }}&gt;
-          &lt;img src="/Etsy logo (Etsy Shop Icon).png" alt="Find us on Etsy"
-            style={{ width:"72px", height:"72px", objectFit:"contain", opacity:0.65, borderRadius:"6px" }} /&gt;
-        &lt;/a&gt;
+        <a href="https://www.etsy.com/shop/TheDayWe" target="_blank" rel="noopener noreferrer"
+          style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", right:"12px", display:"flex", alignItems:"center" }}>
+          <img src="/Etsy logo (Etsy Shop Icon).png" alt="Find us on Etsy"
+            style={{ width:"72px", height:"72px", objectFit:"contain", opacity:0.65, borderRadius:"6px" }} />
+        </a>
         {/* Owner mode toggle */}
-        &lt;div style={{ position:"absolute", bottom:"8px", right:"12px" }}&gt;
+        <div style={{ position:"absolute", bottom:"8px", right:"12px" }}>
           {ownerMode ? (
-            &lt;button onClick={() =&gt; setOwnerMode(false)}
+            <button onClick={() => setOwnerMode(false)}
               style={{ fontSize:"9px", color:"#2a9a2a", background:"transparent", border:"1px solid #2a9a2a",
-                borderRadius:"5px", padding:"3px 8px", cursor:"pointer", letterSpacing:"0.1em", fontFamily:"'Georgia', serif" }}&gt;
+                borderRadius:"5px", padding:"3px 8px", cursor:"pointer", letterSpacing:"0.1em", fontFamily:"'Georgia', serif" }}>
               ✓ OWNER
-            &lt;/button&gt;
+            </button>
           ) : (
-            &lt;button onClick={() =&gt; {
+            <button onClick={() => {
               const pw = prompt("Owner password:");
               if (pw === OWNER_PASSWORD) setOwnerMode(true);
             }}
               style={{ fontSize:"9px", color:txtSub, background:"transparent", border:"none",
-                padding:"3px 8px", cursor:"pointer", opacity:0.3, fontFamily:"'Georgia', serif" }}&gt;
+                padding:"3px 8px", cursor:"pointer", opacity:0.3, fontFamily:"'Georgia', serif" }}>
               ···
-            &lt;/button&gt;
+            </button>
           )}
-        &lt;/div&gt;
+        </div>
         {/* Code badge if redeemed */}
-        {codeValid &amp;&amp; (
-          &lt;div style={{ fontSize:"9px", letterSpacing:"0.15em", color:"#2a9a2a", marginTop:"6px" }}&gt;
+        {codeValid && (
+          <div style={{ fontSize:"9px", letterSpacing:"0.15em", color:"#2a9a2a", marginTop:"6px" }}>
             ✓ Code redeemed · {codeValid.type === "physical" ? "Print order" : "Digital download"} unlocked
-          &lt;/div&gt;
+          </div>
         )}
-      &lt;/div&gt;
+      </div>
       {/* HERO + Journey selector */}
-      {!journey &amp;&amp; !codeValid &amp;&amp; !ownerMode &amp;&amp; step === 0 &amp;&amp; orderStep === null &amp;&amp; !completedOrder &amp;&amp; (
-        &lt;div style={{ width:"100%", maxWidth:"680px", margin:"0 auto" }}&gt;
+      {!journey && !codeValid && !ownerMode && step === 0 && orderStep === null && !completedOrder && (
+        <div style={{ width:"100%", maxWidth:"680px", margin:"0 auto" }}>
           {/* Hero video */}
-          &lt;div style={{ position:"relative", width:"100%", height:"480px", overflow:"hidden",
-            marginBottom:"48px", borderRadius:"0 0 24px 24px" }}&gt;
-            &lt;video autoPlay muted loop playsInline
-              style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}&gt;
-              &lt;source src="/download.mp4" type="video/mp4"/&gt;
-            &lt;/video&gt;
-            &lt;div style={{ position:"absolute", inset:0,
-              background:"linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%)" }} /&gt;
-            &lt;div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column",
-              alignItems:"center", justifyContent:"center", textAlign:"center", padding:"24px" }}&gt;
-              &lt;p style={{ fontSize:"10px", letterSpacing:"0.4em", textTransform:"uppercase",
-                color:"rgba(255,255,255,0.7)", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}&gt;
+          <div style={{ position:"relative", width:"100%", height:"480px", overflow:"hidden",
+            marginBottom:"48px", borderRadius:"0 0 24px 24px" }}>
+            <video autoPlay muted loop playsInline
+              style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}>
+              <source src="/download.mp4" type="video/mp4"/>
+            </video>
+            <div style={{ position:"absolute", inset:0,
+              background:"linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%)" }} />
+            <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column",
+              alignItems:"center", justifyContent:"center", textAlign:"center", padding:"24px" }}>
+              <p style={{ fontSize:"10px", letterSpacing:"0.4em", textTransform:"uppercase",
+                color:"rgba(255,255,255,0.7)", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
                 Personalised Star Maps
-              &lt;/p&gt;
-              &lt;h2 style={{ fontSize:"clamp(26px,5vw,44px)", fontWeight:"400", fontStyle:"italic",
+              </p>
+              <h2 style={{ fontSize:"clamp(26px,5vw,44px)", fontWeight:"400", fontStyle:"italic",
                 fontFamily:"'Playfair Display', Georgia, serif", margin:"0 0 20px", lineHeight:1.2,
                 color:"#ffffff", textShadow:"0 2px 20px rgba(0,0,0,0.4)",
                 transition: "opacity 0.8s ease", minHeight:"1.4em"
-              }}&gt;
+              }}>
                 {["The day they were born.","The night you said yes.","The night everything changed."][taglineIdx]}
-              &lt;/h2&gt;
-              &lt;p style={{ fontSize:"16px", color:"rgba(255,255,255,0.9)", lineHeight:"1.6",
-                maxWidth:"360px", margin:"0 auto 20px", fontFamily:"'Playfair Display', Georgia, serif", fontWeight:"400", fontStyle:"italic" }}&gt;
+              </h2>
+              <p style={{ fontSize:"16px", color:"rgba(255,255,255,0.9)", lineHeight:"1.6",
+                maxWidth:"360px", margin:"0 auto 20px", fontFamily:"'Playfair Display', Georgia, serif", fontWeight:"400", fontStyle:"italic" }}>
                 The exact stars from your most special moment — personalised and emailed as a print-ready PDF.
-              &lt;/p&gt;
-              &lt;button onClick={() =&gt; document.getElementById("journey-buttons").scrollIntoView({ behavior: "smooth" })}
+              </p>
+              <button onClick={() => document.getElementById("journey-buttons").scrollIntoView({ behavior: "smooth" })}
                 style={{ padding:"16px 36px", borderRadius:"10px", background:"#ffffff", color:"#1a1a1a",
                   border:"none", fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
                   cursor:"pointer", fontFamily:"'Georgia', serif",
-                  boxShadow:"0 4px 24px rgba(0,0,0,0.3)" }}&gt;
+                  boxShadow:"0 4px 24px rgba(0,0,0,0.3)" }}>
                 Get Started →
-              &lt;/button&gt;
-              &lt;p style={{ fontSize:"13px", color:"rgba(255,255,255,0.8)", marginTop:"12px",
-                fontFamily:"'Inter', sans-serif", letterSpacing:"0.05em" }}&gt;
-                &lt;strong style={{ fontSize:"18px", color:"#ffffff" }}&gt;{formatPrice(PRODUCTS.digital, currency)}&lt;/strong&gt; · Instant PDF delivery · Print anywhere
-              &lt;/p&gt;
-            &lt;/div&gt;
-          &lt;/div&gt;
+              </button>
+              <p style={{ fontSize:"13px", color:"rgba(255,255,255,0.8)", marginTop:"12px",
+                fontFamily:"'Inter', sans-serif", letterSpacing:"0.05em" }}>
+                <strong style={{ fontSize:"18px", color:"#ffffff" }}>{formatPrice(PRODUCTS.digital, currency)}</strong> · Instant PDF delivery · Print anywhere
+              </p>
+            </div>
+          </div>
           {/* Mockup images */}
-          &lt;div style={{ display:"flex", gap:"12px", padding:"0 16px", marginBottom:"40px", justifyContent:"center", alignItems:"flex-end" }}&gt;
-            &lt;div style={{ flex:1, maxWidth:"180px" }}&gt;
-              &lt;img src="/Mockups star map (2).png" alt="Birth star map"
-                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} /&gt;
-              &lt;p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}&gt;NEW ARRIVAL&lt;/p&gt;
-            &lt;/div&gt;
-            &lt;div style={{ flex:1, maxWidth:"210px" }}&gt;
-              &lt;img src="/Mockups star map (1).png" alt="Couples star map"
-                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 16px 48px rgba(0,0,0,0.18)", display:"block" }} /&gt;
-              &lt;p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}&gt;THE NIGHT WE SAID YES&lt;/p&gt;
-            &lt;/div&gt;
-            &lt;div style={{ flex:1, maxWidth:"180px" }}&gt;
-              &lt;img src="/Mockups star map (5).png" alt="Personal star map"
-                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} /&gt;
-              &lt;p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}&gt;ANNIVERSARY&lt;/p&gt;
-            &lt;/div&gt;
-          &lt;/div&gt;
+          <div style={{ display:"flex", gap:"12px", padding:"0 16px", marginBottom:"40px", justifyContent:"center", alignItems:"flex-end" }}>
+            <div style={{ flex:1, maxWidth:"180px" }}>
+              <img src="/Mockups star map (2).png" alt="Birth star map"
+                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} />
+              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>NEW ARRIVAL</p>
+            </div>
+            <div style={{ flex:1, maxWidth:"210px" }}>
+              <img src="/Mockups star map (1).png" alt="Couples star map"
+                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 16px 48px rgba(0,0,0,0.18)", display:"block" }} />
+              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>THE NIGHT WE SAID YES</p>
+            </div>
+            <div style={{ flex:1, maxWidth:"180px" }}>
+              <img src="/Mockups star map (5).png" alt="Personal star map"
+                style={{ width:"100%", borderRadius:"8px", boxShadow:"0 12px 40px rgba(0,0,0,0.15)", display:"block" }} />
+              <p style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"8px", letterSpacing:"0.15em", fontFamily:"'Inter', sans-serif" }}>ANNIVERSARY</p>
+            </div>
+          </div>
           {/* Occasions strip */}
-          &lt;div style={{ display:"flex", justifyContent:"center", flexWrap:"wrap", gap:"8px", padding:"0 16px", marginBottom:"40px" }}&gt;
-            {[["👶","New Babies"],["💍","Weddings"],["💕","Anniversaries"],["🎂","Birthdays"],["💫","First Dates"],["🌟","Just Because"]].map(([emoji, label]) =&gt; (
-              &lt;div key={label} style={{ padding:"8px 14px", borderRadius:"20px", border:"1px solid "+cardBdr,
-                background:cardBg, fontSize:"11px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300" }}&gt;
+          <div style={{ display:"flex", justifyContent:"center", flexWrap:"wrap", gap:"8px", padding:"0 16px", marginBottom:"40px" }}>
+            {[["👶","New Babies"],["💍","Weddings"],["💕","Anniversaries"],["🎂","Birthdays"],["💫","First Dates"],["🌟","Just Because"]].map(([emoji, label]) => (
+              <div key={label} style={{ padding:"8px 14px", borderRadius:"20px", border:"1px solid "+cardBdr,
+                background:cardBg, fontSize:"11px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300" }}>
                 {emoji} {label}
-              &lt;/div&gt;
+              </div>
             ))}
-          &lt;/div&gt;
+          </div>
           {/* How it works */}
-          &lt;div style={{ display:"flex", gap:"0", justifyContent:"center", marginBottom:"40px", padding:"0 16px", alignItems:"flex-start" }}&gt;
+          <div style={{ display:"flex", gap:"0", justifyContent:"center", marginBottom:"40px", padding:"0 16px", alignItems:"flex-start" }}>
             {[
-              { n:"1.", title:"Choose your moment", sub:"A date, time &amp; place that meant everything" },
+              { n:"1.", title:"Choose your moment", sub:"A date, time & place that meant everything" },
               { n:"2.", title:"Make it yours", sub:"Names, style, and a title only you could write" },
               { n:"3.", title:"Receive it instantly", sub:"Print-ready PDF in your inbox within minutes" },
-            ].map((s, idx) =&gt; (
-              &lt;div key={s.n} style={{ flex:"1", minWidth:"100px", maxWidth:"200px", padding:"20px 14px",
-                borderRight: idx &lt; 2 ? "1px solid "+cardBdr : "none", textAlign:"center" }}&gt;
-                &lt;div style={{ fontSize:"11px", color:txtSub, marginBottom:"10px", fontFamily:"'Playfair Display', Georgia, serif", fontStyle:"italic", opacity:0.5 }}&gt;
+            ].map((s, idx) => (
+              <div key={s.n} style={{ flex:"1", minWidth:"100px", maxWidth:"200px", padding:"20px 14px",
+                borderRight: idx < 2 ? "1px solid "+cardBdr : "none", textAlign:"center" }}>
+                <div style={{ fontSize:"11px", color:txtSub, marginBottom:"10px", fontFamily:"'Playfair Display', Georgia, serif", fontStyle:"italic", opacity:0.5 }}>
                   {s.n}
-                &lt;/div&gt;
-                &lt;div style={{ fontSize:"12px", fontStyle:"italic", fontFamily:"'Playfair Display', Georgia, serif", marginBottom:"6px", color:txtMain }}&gt;
+                </div>
+                <div style={{ fontSize:"12px", fontStyle:"italic", fontFamily:"'Playfair Display', Georgia, serif", marginBottom:"6px", color:txtMain }}>
                   {s.title}
-                &lt;/div&gt;
-                &lt;div style={{ fontSize:"10px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300", lineHeight:"1.6" }}&gt;
+                </div>
+                <div style={{ fontSize:"10px", color:txtSub, fontFamily:"'Inter', sans-serif", fontWeight:"300", lineHeight:"1.6" }}>
                   {s.sub}
-                &lt;/div&gt;
-              &lt;/div&gt;
+                </div>
+              </div>
             ))}
-          &lt;/div&gt;
+          </div>
           {/* Journey buttons */}
-          &lt;div id="journey-buttons" style={{ padding:"0 16px 64px" }}&gt;
-            &lt;p style={{ textAlign:"center", fontSize:"9px", color:txtSub, letterSpacing:"0.25em",
-              textTransform:"uppercase", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}&gt;
+          <div id="journey-buttons" style={{ padding:"0 16px 64px" }}>
+            <p style={{ textAlign:"center", fontSize:"9px", color:txtSub, letterSpacing:"0.25em",
+              textTransform:"uppercase", marginBottom:"16px", fontFamily:"'Inter', sans-serif" }}>
               Get started
-            &lt;/p&gt;
-            &lt;button onClick={() =&gt; { setJourney("direct"); setProduct("digital"); }}
+            </p>
+            <button onClick={() => { setJourney("direct"); setProduct("digital"); }}
               style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
                 border:"1.5px solid "+accent, background:accent, color:accentFg,
-                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}&gt;
-              &lt;div style={{ fontSize:"14px", marginBottom:"4px" }}&gt;Create My Star Map&lt;/div&gt;
-              &lt;div style={{ fontSize:"10px", opacity:0.8 }}&gt;PDF emailed instantly · {formatPrice(PRODUCTS.digital, currency)} · print at home or any print shop&lt;/div&gt;
-            &lt;/button&gt;
-            &lt;button onClick={() =&gt; setJourney("code")}
+                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+              <div style={{ fontSize:"14px", marginBottom:"4px" }}>Create My Star Map</div>
+              <div style={{ fontSize:"10px", opacity:0.8 }}>PDF emailed instantly · {formatPrice(PRODUCTS.digital, currency)} · print at home or any print shop</div>
+            </button>
+            <button onClick={() => setJourney("code")}
               style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
                 border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
-                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}&gt;
-              &lt;div style={{ fontSize:"14px", marginBottom:"4px" }}&gt;I have a code&lt;/div&gt;
-              &lt;div style={{ fontSize:"10px", color:txtSub }}&gt;Purchased on Etsy? Enter your code to unlock your personalised design&lt;/div&gt;
-            &lt;/button&gt;
-            {false &amp;&amp; &lt;button onClick={() =&gt; { setJourney("print"); setProduct("unframed_8x10"); }}
+                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+              <div style={{ fontSize:"14px", marginBottom:"4px" }}>I have a code</div>
+              <div style={{ fontSize:"10px", color:txtSub }}>Purchased on Etsy? Enter your code to unlock your personalised design</div>
+            </button>
+            {false && <button onClick={() => { setJourney("print"); setProduct("unframed_8x10"); }}
               style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
                 border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
-                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}&gt;
-              &lt;div style={{ fontSize:"14px", marginBottom:"4px" }}&gt;Order a Physical Print&lt;/div&gt;
-              &lt;div style={{ fontSize:"10px", color:txtSub }}&gt;Professionally printed and shipped to your door · from {formatPrice(PRODUCTS.unframed_8x10, currency)}&lt;/div&gt;
-            &lt;/button&gt;}
-          &lt;/div&gt;
-        &lt;/div&gt;
+                fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
+              <div style={{ fontSize:"14px", marginBottom:"4px" }}>Order a Physical Print</div>
+              <div style={{ fontSize:"10px", color:txtSub }}>Professionally printed and shipped to your door · from {formatPrice(PRODUCTS.unframed_8x10, currency)}</div>
+            </button>}
+          </div>
+        </div>
       )}
       {/* Code entry screen */}
-      {journey === "code" &amp;&amp; !codeValid &amp;&amp; (
-        &lt;div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"32px 16px" }}&gt;
-          &lt;div style={card}&gt;
-            &lt;span style={{ ...lbl, marginBottom:"16px" }}&gt;Enter Your Code&lt;/span&gt;
-            &lt;p style={{ fontSize:"12px", color:txtSub, lineHeight:"1.7", marginBottom:"20px", margin:"0 0 20px" }}&gt;
+      {journey === "code" && !codeValid && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"32px 16px" }}>
+          <div style={card}>
+            <span style={{ ...lbl, marginBottom:"16px" }}>Enter Your Code</span>
+            <p style={{ fontSize:"12px", color:txtSub, lineHeight:"1.7", marginBottom:"20px", margin:"0 0 20px" }}>
               Check your Etsy order confirmation or the PDF you received. Your unique code is listed there.
-            &lt;/p&gt;
-            &lt;input style={{ ...inp, marginBottom:"12px", textTransform:"uppercase", letterSpacing:"0.15em", fontSize:"16px", textAlign:"center" }}
+            </p>
+            <input style={{ ...inp, marginBottom:"12px", textTransform:"uppercase", letterSpacing:"0.15em", fontSize:"16px", textAlign:"center" }}
               type="text" value={codeInput}
-              onChange={e =&gt; { setCodeInput(e.target.value.toUpperCase()); setCodeError(""); }}
-              onKeyDown={e =&gt; { if (e.key === "Enter") redeemCode(); }}
-              placeholder="e.g. TDW-ABC123" /&gt;
-            {codeError &amp;&amp; &lt;div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px", textAlign:"center" }}&gt;{codeError}&lt;/div&gt;}
-            &lt;button onClick={redeemCode} disabled={codeLoading}
-              style={{ ...nextBtn, width:"100%", flex:"none", opacity: codeLoading ? 0.6 : 1 }}&gt;
+              onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(""); }}
+              onKeyDown={e => { if (e.key === "Enter") redeemCode(); }}
+              placeholder="e.g. TDW-ABC123" />
+            {codeError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px", textAlign:"center" }}>{codeError}</div>}
+            <button onClick={redeemCode} disabled={codeLoading}
+              style={{ ...nextBtn, width:"100%", flex:"none", opacity: codeLoading ? 0.6 : 1 }}>
               {codeLoading ? "Checking…" : "Unlock My Design →"}
-            &lt;/button&gt;
-          &lt;/div&gt;
-          &lt;button onClick={() =&gt; setJourney(null)}
-            style={{ ...backBtn, width:"100%", flex:"none", marginTop:"4px" }}&gt;
+            </button>
+          </div>
+          <button onClick={() => setJourney(null)}
+            style={{ ...backBtn, width:"100%", flex:"none", marginTop:"4px" }}>
             ← Back
-          &lt;/button&gt;
-        &lt;/div&gt;
+          </button>
+        </div>
       )}
       {/* Main design flow — shown when journey is selected OR code is valid */}
-      {(journey === "direct" || journey === "print" || codeValid || ownerMode) &amp;&amp; step &lt; 3 &amp;&amp; !orderStep &amp;&amp; !completedOrder &amp;&amp; (
-        &lt;&gt;
+      {(journey === "direct" || journey === "print" || codeValid || ownerMode) && step < 3 && !orderStep && !completedOrder && (
+        <>
           {/* Step nav */}
-          &lt;div style={{ display:"flex", borderBottom:"1px solid "+cardBdr, background:cardBg }}&gt;
-            {STEPS.map((s, i) =&gt; (
-              &lt;button key={s} onClick={() =&gt; setStep(i)}
+          <div style={{ display:"flex", borderBottom:"1px solid "+cardBdr, background:cardBg }}>
+            {STEPS.map((s, i) => (
+              <button key={s} onClick={() => setStep(i)}
                 style={{ flex:1, padding:"12px 4px", background:"transparent", border:"none", cursor:"pointer",
                   borderBottom:"1.5px solid "+(step===i ? accent : "transparent"),
-                  color: step===i ? accent : i&lt;step ? (isDark?"#4a8a4a":"#2a7a2a") : txtSub,
+                  color: step===i ? accent : i<step ? (isDark?"#4a8a4a":"#2a7a2a") : txtSub,
                   fontSize:"9px", letterSpacing:"0.14em", textTransform:"uppercase", fontFamily:"'Georgia', serif",
-                  transition:"color 0.2s" }}&gt;
-                {i &lt; step ? "✓ " : ""}{s}
-              &lt;/button&gt;
+                  transition:"color 0.2s" }}>
+                {i < step ? "✓ " : ""}{s}
+              </button>
             ))}
-          &lt;/div&gt;
-          &lt;div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}&gt;
+          </div>
+          <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
             {/* STEP 0: DESIGN */}
-            {step === 0 &amp;&amp; (
-              &lt;div&gt;
-                &lt;div style={card}&gt;
-                  &lt;span style={{ ...lbl, marginBottom:"14px" }}&gt;Choose a Style&lt;/span&gt;
-                  &lt;div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"8px", marginBottom:"4px" }}&gt;
-                    {Object.entries(STYLES).map(([k, st]) =&gt; (
-                      &lt;button key={k} onClick={() =&gt; setStyleName(k)}
+            {step === 0 && (
+              <div>
+                <div style={card}>
+                  <span style={{ ...lbl, marginBottom:"14px" }}>Choose a Style</span>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"8px", marginBottom:"4px" }}>
+                    {Object.entries(STYLES).map(([k, st]) => (
+                      <button key={k} onClick={() => setStyleName(k)}
                         style={{ padding:"0", borderRadius:"10px", cursor:"pointer", overflow:"hidden",
                           border:"2px solid "+(styleName===k ? accent : cardBdr),
                           background:"transparent", transition:"all 0.15s",
-                          boxShadow: styleName===k ? "0 2px 12px rgba(0,0,0,0.12)" : "none" }}&gt;
-                        &lt;div style={{ background:st.posterBg, padding:"10px 8px 8px", display:"flex", flexDirection:"column", alignItems:"center", gap:"5px" }}&gt;
-                          &lt;div style={{ width:"32px", height:"32px", borderRadius:"50%", background:st.skyBg,
-                            border:"1px solid "+st.border, display:"flex", alignItems:"center", justifyContent:"center" }}&gt;
-                            &lt;div style={{ width:"3px", height:"3px", borderRadius:"50%", background:"rgba("+st.starRGB+",0.9)" }}/&gt;
-                          &lt;/div&gt;
-                          &lt;div style={{ width:"60%", height:"1px", background:st.divColor, opacity:0.5 }}/&gt;
-                          &lt;div style={{ width:"70%", height:"2px", borderRadius:"1px", background:st.textColor, opacity:0.3 }}/&gt;
-                        &lt;/div&gt;
-                        &lt;div style={{ padding:"6px 4px", fontSize:"10px", fontFamily:"'Georgia', serif",
-                          color:txtMain, background:cardBg, textAlign:"center", letterSpacing:"0.05em" }}&gt;
+                          boxShadow: styleName===k ? "0 2px 12px rgba(0,0,0,0.12)" : "none" }}>
+                        <div style={{ background:st.posterBg, padding:"10px 8px 8px", display:"flex", flexDirection:"column", alignItems:"center", gap:"5px" }}>
+                          <div style={{ width:"32px", height:"32px", borderRadius:"50%", background:st.skyBg,
+                            border:"1px solid "+st.border, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                            <div style={{ width:"3px", height:"3px", borderRadius:"50%", background:"rgba("+st.starRGB+",0.9)" }}/>
+                          </div>
+                          <div style={{ width:"60%", height:"1px", background:st.divColor, opacity:0.5 }}/>
+                          <div style={{ width:"70%", height:"2px", borderRadius:"1px", background:st.textColor, opacity:0.3 }}/>
+                        </div>
+                        <div style={{ padding:"6px 4px", fontSize:"10px", fontFamily:"'Georgia', serif",
+                          color:txtMain, background:cardBg, textAlign:"center", letterSpacing:"0.05em" }}>
                           {st.label}
-                        &lt;/div&gt;
-                      &lt;/button&gt;
+                        </div>
+                      </button>
                     ))}
-                  &lt;/div&gt;
-                &lt;/div&gt;
-                &lt;button onClick={() =&gt; setStep(1)} style={{ ...nextBtn, width:"100%", flex:"none" }}&gt;
+                  </div>
+                </div>
+                <button onClick={() => setStep(1)} style={{ ...nextBtn, width:"100%", flex:"none" }}>
                   Next: Set the Moment →
-                &lt;/button&gt;
-              &lt;/div&gt;
+                </button>
+              </div>
             )}
             {/* STEP 1: MOMENT */}
-            {step === 1 &amp;&amp; (
-              &lt;div&gt;
-                &lt;div style={card}&gt;
-                  &lt;label style={lbl}&gt;Search Location&lt;/label&gt;
-                  &lt;div style={{ display:"flex", gap:"8px", marginBottom:"6px" }}&gt;
-                    &lt;input style={{ ...inp, flex:1 }} type="text" value={locSearch}
-                      onChange={e =&gt; setLocSearch(e.target.value)}
-                      onKeyDown={e =&gt; { if (e.key==="Enter") { e.preventDefault(); searchLocation(); }}}
-                      placeholder="e.g. Tauranga, New Zealand" /&gt;
-                    &lt;button onClick={searchLocation} disabled={locLoading}
+            {step === 1 && (
+              <div>
+                <div style={card}>
+                  <label style={lbl}>Search Location</label>
+                  <div style={{ display:"flex", gap:"8px", marginBottom:"6px" }}>
+                    <input style={{ ...inp, flex:1 }} type="text" value={locSearch}
+                      onChange={e => setLocSearch(e.target.value)}
+                      onKeyDown={e => { if (e.key==="Enter") { e.preventDefault(); searchLocation(); }}}
+                      placeholder="e.g. Tauranga, New Zealand" />
+                    <button onClick={searchLocation} disabled={locLoading}
                       style={{ padding:"10px 16px", borderRadius:"8px", background:accent, border:"none",
-                        color:accentFg, cursor:"pointer", fontSize:"11px", fontFamily:"'Georgia', serif", whiteSpace:"nowrap", letterSpacing:"0.1em" }}&gt;
+                        color:accentFg, cursor:"pointer", fontSize:"11px", fontFamily:"'Georgia', serif", whiteSpace:"nowrap", letterSpacing:"0.1em" }}>
                       {locLoading ? "…" : "Search"}
-                    &lt;/button&gt;
-                  &lt;/div&gt;
-                  {locError &amp;&amp; &lt;div style={{ fontSize:"11px", color:"#e05555", marginBottom:"8px" }}&gt;{locError}&lt;/div&gt;}
-                  {locResults.length &gt; 0 &amp;&amp; (
-                    &lt;div style={{ borderRadius:"8px", overflow:"hidden", border:"1px solid "+cardBdr, marginBottom:"10px" }}&gt;
-                      {locResults.map((r, i) =&gt; (
-                        &lt;button key={i} onClick={() =&gt; pickLocation(r)}
+                    </button>
+                  </div>
+                  {locError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"8px" }}>{locError}</div>}
+                  {locResults.length > 0 && (
+                    <div style={{ borderRadius:"8px", overflow:"hidden", border:"1px solid "+cardBdr, marginBottom:"10px" }}>
+                      {locResults.map((r, i) => (
+                        <button key={i} onClick={() => pickLocation(r)}
                           style={{ width:"100%", padding:"10px 14px", background: i%2===0 ? inpBg : cardBg,
                             border:"none", cursor:"pointer", textAlign:"left", fontSize:"12px", color:txtMain,
-                            fontFamily:"'Georgia', serif", borderBottom: i&lt;locResults.length-1 ? "1px solid "+cardBdr : "none" }}&gt;
+                            fontFamily:"'Georgia', serif", borderBottom: i<locResults.length-1 ? "1px solid "+cardBdr : "none" }}>
                           {r.name}
-                        &lt;/button&gt;
+                        </button>
                       ))}
-                    &lt;/div&gt;
+                    </div>
                   )}
-                  &lt;div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", marginBottom:"10px" }}&gt;
-                    &lt;div&gt;
-                      &lt;label style={lbl}&gt;Latitude&lt;/label&gt;
-                      &lt;input style={inp} type="text" value={latStr} onChange={e =&gt; setLatStr(e.target.value)} placeholder="51.5074" /&gt;
-                    &lt;/div&gt;
-                    &lt;div&gt;
-                      &lt;label style={lbl}&gt;Longitude&lt;/label&gt;
-                      &lt;input style={inp} type="text" value={lonStr} onChange={e =&gt; setLonStr(e.target.value)} placeholder="-0.1278" /&gt;
-                    &lt;/div&gt;
-                  &lt;/div&gt;
-                  &lt;label style={lbl}&gt;Date&lt;/label&gt;
-                  &lt;input style={{ ...inp, marginBottom:"10px" }} type="date" value={dateStr} onChange={e =&gt; setDateStr(e.target.value)} /&gt;
-                  &lt;label style={lbl}&gt;Time&lt;/label&gt;
-                  &lt;input style={inp} type="time" value={timeStr} onChange={e =&gt; setTimeStr(e.target.value)} /&gt;
-                &lt;/div&gt;
-                &lt;div style={{ display:"flex", gap:"8px" }}&gt;
-                  &lt;button onClick={() =&gt; setStep(0)} style={backBtn}&gt;← Back&lt;/button&gt;
-                  &lt;button onClick={() =&gt; setStep(2)} style={nextBtn}&gt;Next: Add Text →&lt;/button&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", marginBottom:"10px" }}>
+                    <div>
+                      <label style={lbl}>Latitude</label>
+                      <input style={inp} type="text" value={latStr} onChange={e => setLatStr(e.target.value)} placeholder="51.5074" />
+                    </div>
+                    <div>
+                      <label style={lbl}>Longitude</label>
+                      <input style={inp} type="text" value={lonStr} onChange={e => setLonStr(e.target.value)} placeholder="-0.1278" />
+                    </div>
+                  </div>
+                  <label style={lbl}>Date</label>
+                  <input style={{ ...inp, marginBottom:"10px" }} type="date" value={dateStr} onChange={e => setDateStr(e.target.value)} />
+                  <label style={lbl}>Time</label>
+                  <input style={inp} type="time" value={timeStr} onChange={e => setTimeStr(e.target.value)} />
+                </div>
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(0)} style={backBtn}>← Back</button>
+                  <button onClick={() => setStep(2)} style={nextBtn}>Next: Add Text →</button>
+                </div>
+              </div>
             )}
             {/* STEP 2: TEXT */}
-            {step === 2 &amp;&amp; (
-              &lt;div&gt;
-                &lt;div style={card}&gt;
-                  &lt;label style={lbl}&gt;Names&lt;/label&gt;
-                  &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={names}
-                    onChange={e =&gt; setNames(e.target.value)} placeholder="e.g. Maria &amp; Oliver" /&gt;
-                  &lt;label style={lbl}&gt;Title &lt;span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}&gt;— choose below or type your own&lt;/span&gt;&lt;/label&gt;
-                  &lt;input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
-                    onChange={e =&gt; setTitle(e.target.value)} placeholder="The Night Our Stars Aligned" /&gt;
-                  &lt;div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"12px" }}&gt;
+            {step === 2 && (
+              <div>
+                <div style={card}>
+                  <label style={lbl}>Names</label>
+                  <input style={{ ...inp, marginBottom:"10px" }} type="text" value={names}
+                    onChange={e => setNames(e.target.value)} placeholder="e.g. Maria & Oliver" />
+                  <label style={lbl}>Title <span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}>— choose below or type your own</span></label>
+                  <input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
+                    onChange={e => setTitle(e.target.value)} placeholder="The Night Our Stars Aligned" />
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"12px" }}>
                     {[
                       "The Night We Met",
                       "The Night You Said Yes",
@@ -9564,38 +9564,38 @@ export default function App() {
                       "Under the Same Sky",
                       "The Night We Became Family",
                       "The Night We Said I Do",
-                    ].map(s =&gt; (
-                      &lt;button key={s} onClick={() =&gt; setTitle(s)}
+                    ].map(s => (
+                      <button key={s} onClick={() => setTitle(s)}
                         style={{ padding:"6px 12px", borderRadius:"20px", border:"1px solid "+(title===s ? accent : cardBdr),
                           background: title===s ? accent : "transparent", color: title===s ? accentFg : txtSub,
                           fontSize:"11px", cursor:"pointer", fontFamily:"'Georgia', serif", fontStyle:"italic",
-                          letterSpacing:"0.05em", transition:"all 0.15s" }}&gt;
+                          letterSpacing:"0.05em", transition:"all 0.15s" }}>
                         {s}
-                      &lt;/button&gt;
+                      </button>
                     ))}
-                  &lt;/div&gt;
-                  &lt;label style={lbl}&gt;Footnote &lt;span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}&gt;— auto-generated or add your own&lt;/span&gt;&lt;/label&gt;
-                  &lt;div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"8px" }}&gt;
-                    &lt;input type="checkbox" id="auto-fn" checked={useAuto} onChange={e =&gt; setUseAuto(e.target.checked)}
-                      style={{ accentColor: accent }} /&gt;
-                    &lt;label htmlFor="auto-fn" style={{ ...lbl, marginBottom:0, cursor:"pointer" }}&gt;Auto-generate&lt;/label&gt;
-                  &lt;/div&gt;
-                  {!useAuto &amp;&amp; (
-                    &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={footnote}
-                      onChange={e =&gt; setFootnote(e.target.value)} placeholder="Custom footnote…" /&gt;
+                  </div>
+                  <label style={lbl}>Footnote <span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}>— auto-generated or add your own</span></label>
+                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"8px" }}>
+                    <input type="checkbox" id="auto-fn" checked={useAuto} onChange={e => setUseAuto(e.target.checked)}
+                      style={{ accentColor: accent }} />
+                    <label htmlFor="auto-fn" style={{ ...lbl, marginBottom:0, cursor:"pointer" }}>Auto-generate</label>
+                  </div>
+                  {!useAuto && (
+                    <input style={{ ...inp, marginBottom:"10px" }} type="text" value={footnote}
+                      onChange={e => setFootnote(e.target.value)} placeholder="Custom footnote…" />
                   )}
-                  {useAuto &amp;&amp; (
-                    &lt;div style={{ fontSize:"11px", color:txtSub, fontStyle:"italic", marginBottom:"10px" }}&gt;
+                  {useAuto && (
+                    <div style={{ fontSize:"11px", color:txtSub, fontStyle:"italic", marginBottom:"10px" }}>
                       "{computedFootnote}"
-                    &lt;/div&gt;
+                    </div>
                   )}
-                  &lt;div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"4px" }}&gt;
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"4px" }}>
                     {[["showLines","Constellations"],["showGrid","Grid"],["showCoords","Coordinates"],
-                      ["showDate","Date"],["showTime","Time"]].map(([key, label]) =&gt; (
-                      &lt;label key={key} style={{ display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:txtSub, cursor:"pointer", fontFamily:"'Georgia', serif" }}&gt;
-                        &lt;input type="checkbox"
+                      ["showDate","Date"],["showTime","Time"]].map(([key, label]) => (
+                      <label key={key} style={{ display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:txtSub, cursor:"pointer", fontFamily:"'Georgia', serif" }}>
+                        <input type="checkbox"
                           checked={key==="showLines"?showLines:key==="showGrid"?showGrid:key==="showCoords"?showCoords:key==="showDate"?showDate:key==="showTime"?showTime:showFootnote}
-                          onChange={e =&gt; {
+                          onChange={e => {
                             const v = e.target.checked;
                             if(key==="showLines") setShowLines(v);
                             else if(key==="showGrid") setShowGrid(v);
@@ -9604,109 +9604,109 @@ export default function App() {
                             else if(key==="showTime") setShowTime(v);
                             else setShowFootnote(v);
                           }}
-                          style={{ accentColor: accent }} /&gt;
+                          style={{ accentColor: accent }} />
                         {label}
-                      &lt;/label&gt;
+                      </label>
                     ))}
-                  &lt;/div&gt;
-                &lt;/div&gt;
-                &lt;div style={{ display:"flex", gap:"8px" }}&gt;
-                  &lt;button onClick={() =&gt; setStep(1)} style={backBtn}&gt;← Back&lt;/button&gt;
-                  &lt;button onClick={() =&gt; setStep(3)} style={nextBtn}&gt;Preview →&lt;/button&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(1)} style={backBtn}>← Back</button>
+                  <button onClick={() => setStep(3)} style={nextBtn}>Preview →</button>
+                </div>
+              </div>
             )}
-          &lt;/div&gt;
-        &lt;/&gt;
+          </div>
+        </>
       )}
       {/* STEP 3: PREVIEW */}
-      {(journey === "direct" || journey === "print" || journey === "code" || codeValid || ownerMode) &amp;&amp; step === 3 &amp;&amp; !orderStep &amp;&amp; !completedOrder &amp;&amp; (
-        &lt;&gt;
-          &lt;div style={{ display:"flex", borderBottom:"1px solid "+cardBdr, background:cardBg }}&gt;
-            {STEPS.map((s, i) =&gt; (
-              &lt;button key={s} onClick={() =&gt; setStep(i)}
+      {(journey === "direct" || journey === "print" || journey === "code" || codeValid || ownerMode) && step === 3 && !orderStep && !completedOrder && (
+        <>
+          <div style={{ display:"flex", borderBottom:"1px solid "+cardBdr, background:cardBg }}>
+            {STEPS.map((s, i) => (
+              <button key={s} onClick={() => setStep(i)}
                 style={{ flex:1, padding:"12px 4px", background:"transparent", border:"none", cursor:"pointer",
                   borderBottom:"1.5px solid "+(step===i ? accent : "transparent"),
-                  color: step===i ? accent : i&lt;step ? (isDark?"#4a8a4a":"#2a7a2a") : txtSub,
-                  fontSize:"9px", letterSpacing:"0.14em", textTransform:"uppercase", fontFamily:"'Georgia', serif" }}&gt;
-                {i &lt; step ? "✓ " : ""}{s}
-              &lt;/button&gt;
+                  color: step===i ? accent : i<step ? (isDark?"#4a8a4a":"#2a7a2a") : txtSub,
+                  fontSize:"9px", letterSpacing:"0.14em", textTransform:"uppercase", fontFamily:"'Georgia', serif" }}>
+                {i < step ? "✓ " : ""}{s}
+              </button>
             ))}
-          &lt;/div&gt;
-          &lt;div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}&gt;
+          </div>
+          <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
             {/* Canvas preview */}
-            &lt;div style={{ position:"relative", marginBottom:"10px" }}&gt;
-              &lt;canvas ref={previewRef} width={400} height={1000}
+            <div style={{ position:"relative", marginBottom:"10px" }}>
+              <canvas ref={previewRef} width={400} height={1000}
                 style={{ width:"100%", height:"auto", borderRadius:"12px", display:"block",
-                  boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} /&gt;
-              &lt;div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.1em" }}&gt;
-                {stars.filter(s =&gt; s.alt &gt; 0).length} stars visible
-              &lt;/div&gt;
-              &lt;div style={{ textAlign:"center", fontSize:"10px", color:txtSub, marginTop:"8px", lineHeight:"1.7",
-                padding:"10px 16px", background: cardBg, borderRadius:"8px", border:"1px solid "+cardBdr }}&gt;
-                ✦ This is a screen preview only — your final PDF will be higher quality.&lt;br/&gt;
+                  boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} />
+              <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.1em" }}>
+                {stars.filter(s => s.alt > 0).length} stars visible
+              </div>
+              <div style={{ textAlign:"center", fontSize:"10px", color:txtSub, marginTop:"8px", lineHeight:"1.7",
+                padding:"10px 16px", background: cardBg, borderRadius:"8px", border:"1px solid "+cardBdr }}>
+                ✦ This is a screen preview only — your final PDF will be higher quality.<br/>
                 Please check your names, title and date carefully before confirming.
-              &lt;/div&gt;
-            &lt;/div&gt;
+              </div>
+            </div>
             {/* Quick edit */}
-            &lt;div style={{ ...card, marginBottom:"10px" }}&gt;
-              &lt;span style={{ ...lbl, marginBottom:"10px" }}&gt;Quick Edit&lt;/span&gt;
-              &lt;input style={{ ...inp, marginBottom:"8px" }} type="text" value={names}
-                onChange={e =&gt; setNames(e.target.value)} placeholder="Names (e.g. Maria &amp; Oliver)" /&gt;
-              &lt;input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
-                onChange={e =&gt; setTitle(e.target.value)} placeholder="Title" /&gt;
-              &lt;input style={{ ...inp }} type="text" value={locationName}
-                onChange={e =&gt; setLocationName(e.target.value)} placeholder="Location name" /&gt;
-            &lt;/div&gt;
+            <div style={{ ...card, marginBottom:"10px" }}>
+              <span style={{ ...lbl, marginBottom:"10px" }}>Quick Edit</span>
+              <input style={{ ...inp, marginBottom:"8px" }} type="text" value={names}
+                onChange={e => setNames(e.target.value)} placeholder="Names (e.g. Maria & Oliver)" />
+              <input style={{ ...inp, marginBottom:"8px" }} type="text" value={title}
+                onChange={e => setTitle(e.target.value)} placeholder="Title" />
+              <input style={{ ...inp }} type="text" value={locationName}
+                onChange={e => setLocationName(e.target.value)} placeholder="Location name" />
+            </div>
             {/* Download / Order section — code unlock flow */}
-            {codeValid &amp;&amp; !isPhysicalJourney &amp;&amp; !showWarning &amp;&amp; (
-              &lt;div style={card}&gt;
-                &lt;span style={{ ...lbl, marginBottom:"12px" }}&gt;Choose your print size&lt;/span&gt;
+            {codeValid && !isPhysicalJourney && !showWarning && (
+              <div style={card}>
+                <span style={{ ...lbl, marginBottom:"12px" }}>Choose your print size</span>
                 {[
                   { key:"8x10",  label:'8×10"', sub:"20×25cm — desk, bedside or small frame" },
                   { key:"12x16", label:'12×16"', sub:"30×40cm — statement wall print" },
-                ].map(s =&gt; (
-                  &lt;button key={s.key} onClick={() =&gt; setPrintSize(s.key)}
+                ].map(s => (
+                  <button key={s.key} onClick={() => setPrintSize(s.key)}
                     style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer",
                       marginBottom:"8px", border:"1.5px solid "+(printSize===s.key ? accent : cardBdr),
                       background: printSize===s.key ? (isDark?"#1c1c1c":"#f8f8f8") : inpBg,
                       color:txtMain, fontFamily:"'Georgia', serif", transition:"all 0.15s",
-                      display:"flex", justifyContent:"space-between", alignItems:"center", textAlign:"left" }}&gt;
-                    &lt;div&gt;
-                      &lt;div style={{ fontSize:"14px", marginBottom:"2px" }}&gt;{s.label}&lt;/div&gt;
-                      &lt;div style={{ fontSize:"10px", color:txtSub }}&gt;{s.sub}&lt;/div&gt;
-                    &lt;/div&gt;
-                    {printSize===s.key &amp;&amp; &lt;div style={{ fontSize:"16px", color:accent }}&gt;✓&lt;/div&gt;}
-                  &lt;/button&gt;
+                      display:"flex", justifyContent:"space-between", alignItems:"center", textAlign:"left" }}>
+                    <div>
+                      <div style={{ fontSize:"14px", marginBottom:"2px" }}>{s.label}</div>
+                      <div style={{ fontSize:"10px", color:txtSub }}>{s.sub}</div>
+                    </div>
+                    {printSize===s.key && <div style={{ fontSize:"16px", color:accent }}>✓</div>}
+                  </button>
                 ))}
-                &lt;button onClick={() =&gt; setShowWarning(true)}
-                  style={{ ...nextBtn, width:"100%", flex:"none", marginTop:"8px" }}&gt;
+                <button onClick={() => setShowWarning(true)}
+                  style={{ ...nextBtn, width:"100%", flex:"none", marginTop:"8px" }}>
                   Continue →
-                &lt;/button&gt;
-              &lt;/div&gt;
+                </button>
+              </div>
             )}
             {/* Warning + email screen */}
-            {codeValid &amp;&amp; !isPhysicalJourney &amp;&amp; showWarning &amp;&amp; !sent &amp;&amp; (
-              &lt;div style={card}&gt;
-                &lt;div style={{ textAlign:"center", marginBottom:"20px" }}&gt;
-                  &lt;div style={{ fontSize:"28px", marginBottom:"8px" }}&gt;⚠️&lt;/div&gt;
-                  &lt;div style={{ fontSize:"13px", fontWeight:"500", color:txtMain, marginBottom:"8px" }}&gt;
+            {codeValid && !isPhysicalJourney && showWarning && !sent && (
+              <div style={card}>
+                <div style={{ textAlign:"center", marginBottom:"20px" }}>
+                  <div style={{ fontSize:"28px", marginBottom:"8px" }}>⚠️</div>
+                  <div style={{ fontSize:"13px", fontWeight:"500", color:txtMain, marginBottom:"8px" }}>
                     This is your final design
-                  &lt;/div&gt;
-                  &lt;div style={{ fontSize:"11px", color:txtSub, lineHeight:"1.8" }}&gt;
+                  </div>
+                  <div style={{ fontSize:"11px", color:txtSub, lineHeight:"1.8" }}>
                     Once you confirm, your star map will be sent to your email.
                     Please make sure you are happy with your design before continuing —
                     it cannot be changed after this point.
-                  &lt;/div&gt;
-                &lt;/div&gt;
-                &lt;label style={lbl}&gt;Your Name&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custNameInput}
-                  onChange={e =&gt; setCustNameInput(e.target.value)} placeholder="Jane Smith" /&gt;
-                &lt;label style={lbl}&gt;Email Address&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"16px" }} type="email" value={custEmailInput}
-                  onChange={e =&gt; setCustEmailInput(e.target.value)} placeholder="jane@email.com" /&gt;
-                {sendError &amp;&amp; &lt;div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px", textAlign:"center" }}&gt;{sendError}&lt;/div&gt;}
-                &lt;button onClick={async () =&gt; {
+                  </div>
+                </div>
+                <label style={lbl}>Your Name</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custNameInput}
+                  onChange={e => setCustNameInput(e.target.value)} placeholder="Jane Smith" />
+                <label style={lbl}>Email Address</label>
+                <input style={{ ...inp, marginBottom:"16px" }} type="email" value={custEmailInput}
+                  onChange={e => setCustEmailInput(e.target.value)} placeholder="jane@email.com" />
+                {sendError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px", textAlign:"center" }}>{sendError}</div>}
+                <button onClick={async () => {
                   if (!custNameInput || !custEmailInput) { setSendError("Please enter your name and email."); return; }
                   setSending(true); setSendError("");
                   try {
@@ -9748,61 +9748,61 @@ export default function App() {
                   }
                   setSending(false);
                 }} disabled={sending}
-                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:sending?0.6:1 }}&gt;
-                  {sending ? "Generating &amp; sending your star map…" : "✓ Confirm &amp; Send My Star Map"}
-                &lt;/button&gt;
-                &lt;button onClick={() =&gt; setShowWarning(false)}
-                  style={{ ...backBtn, width:"100%", flex:"none", marginTop:"8px" }}&gt;
+                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:sending?0.6:1 }}>
+                  {sending ? "Generating & sending your star map…" : "✓ Confirm & Send My Star Map"}
+                </button>
+                <button onClick={() => setShowWarning(false)}
+                  style={{ ...backBtn, width:"100%", flex:"none", marginTop:"8px" }}>
                   ← Go back and edit
-                &lt;/button&gt;
-              &lt;/div&gt;
+                </button>
+              </div>
             )}
             {/* Sent confirmation screen */}
-            {codeValid &amp;&amp; !isPhysicalJourney &amp;&amp; sent &amp;&amp; (
-              &lt;div style={{ ...card, textAlign:"center" }}&gt;
-                &lt;div style={{ fontSize:"32px", marginBottom:"12px" }}&gt;✨&lt;/div&gt;
-                &lt;div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub, marginBottom:"12px" }}&gt;
+            {codeValid && !isPhysicalJourney && sent && (
+              <div style={{ ...card, textAlign:"center" }}>
+                <div style={{ fontSize:"32px", marginBottom:"12px" }}>✨</div>
+                <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub, marginBottom:"12px" }}>
                   Star Map Sent
-                &lt;/div&gt;
-                &lt;h2 style={{ fontSize:"20px", fontWeight:"300", fontStyle:"italic", margin:"0 0 12px", fontFamily:"'Playfair Display', Georgia, serif" }}&gt;
+                </div>
+                <h2 style={{ fontSize:"20px", fontWeight:"300", fontStyle:"italic", margin:"0 0 12px", fontFamily:"'Playfair Display', Georgia, serif" }}>
                   It's on its way!
-                &lt;/h2&gt;
-                &lt;div style={{ fontSize:"12px", color:txtSub, lineHeight:"2", marginBottom:"20px" }}&gt;
-                  Your star map has been sent to&lt;br/&gt;
-                  &lt;strong style={{ color:txtMain }}&gt;{sentToEmail}&lt;/strong&gt;&lt;br/&gt;
-                  Your print-ready PDF has been sent —&lt;br/&gt;
+                </h2>
+                <div style={{ fontSize:"12px", color:txtSub, lineHeight:"2", marginBottom:"20px" }}>
+                  Your star map has been sent to<br/>
+                  <strong style={{ color:txtMain }}>{sentToEmail}</strong><br/>
+                  Your print-ready PDF has been sent —<br/>
                   check your inbox (and spam, just in case!)
-                &lt;/div&gt;
-                &lt;div style={{ fontSize:"11px", color:txtSub, padding:"14px", background:isDark?"#111":"#f8f8f8", borderRadius:"8px", lineHeight:"1.8" }}&gt;
-                  Any issues? Email us at&lt;br/&gt;
-                  &lt;strong&gt;thedayweprints@gmail.com&lt;/strong&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+                </div>
+                <div style={{ fontSize:"11px", color:txtSub, padding:"14px", background:isDark?"#111":"#f8f8f8", borderRadius:"8px", lineHeight:"1.8" }}>
+                  Any issues? Email us at<br/>
+                  <strong>thedayweprints@gmail.com</strong>
+                </div>
+              </div>
             )}
             {/* Physical print — submit to Gelato */}
-            {isPhysicalJourney &amp;&amp; codeValid &amp;&amp; (
-              &lt;div style={card}&gt;
-                &lt;span style={{ ...lbl, marginBottom:"14px" }}&gt;Submit Your Print Order&lt;/span&gt;
-                &lt;label style={lbl}&gt;Your Name&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custName}
-                  onChange={e =&gt; setCustName(e.target.value)} placeholder="Jane Smith" /&gt;
-                &lt;label style={lbl}&gt;Email&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"10px" }} type="email" value={custEmail}
-                  onChange={e =&gt; setCustEmail(e.target.value)} placeholder="jane@email.com" /&gt;
-                &lt;label style={lbl}&gt;Delivery Address&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custAddress}
-                  onChange={e =&gt; setCustAddress(e.target.value)} placeholder="123 Main Street" /&gt;
-                &lt;label style={lbl}&gt;City&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCity}
-                  onChange={e =&gt; setCustCity(e.target.value)} placeholder="Auckland" /&gt;
-                &lt;label style={lbl}&gt;Postcode&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custPostcode}
-                  onChange={e =&gt; setCustPostcode(e.target.value)} placeholder="1010" /&gt;
-                &lt;label style={lbl}&gt;Country&lt;/label&gt;
-                &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
-                  onChange={e =&gt; setCustCountry(e.target.value)} /&gt;
-                {orderError &amp;&amp; &lt;div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}&gt;{orderError}&lt;/div&gt;}
-                &lt;button onClick={async () =&gt; {
+            {isPhysicalJourney && codeValid && (
+              <div style={card}>
+                <span style={{ ...lbl, marginBottom:"14px" }}>Submit Your Print Order</span>
+                <label style={lbl}>Your Name</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custName}
+                  onChange={e => setCustName(e.target.value)} placeholder="Jane Smith" />
+                <label style={lbl}>Email</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="email" value={custEmail}
+                  onChange={e => setCustEmail(e.target.value)} placeholder="jane@email.com" />
+                <label style={lbl}>Delivery Address</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custAddress}
+                  onChange={e => setCustAddress(e.target.value)} placeholder="123 Main Street" />
+                <label style={lbl}>City</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCity}
+                  onChange={e => setCustCity(e.target.value)} placeholder="Auckland" />
+                <label style={lbl}>Postcode</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custPostcode}
+                  onChange={e => setCustPostcode(e.target.value)} placeholder="1010" />
+                <label style={lbl}>Country</label>
+                <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
+                  onChange={e => setCustCountry(e.target.value)} />
+                {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}>{orderError}</div>}
+                <button onClick={async () => {
                   if (!custName || !custEmail || !custAddress || !custCity) {
                     setOrderError("Please fill in all required fields."); return;
                   }
@@ -9852,245 +9852,245 @@ export default function App() {
                   }
                   setOrderLoading(false);
                 }} disabled={orderLoading}
-                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:orderLoading?0.6:1 }}&gt;
+                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:orderLoading?0.6:1 }}>
                   {orderLoading ? "Submitting…" : "Submit Print Order →"}
-                &lt;/button&gt;
-              &lt;/div&gt;
+                </button>
+              </div>
             )}
             {/* Direct purchase — buy now */}
-            {journey === "direct" &amp;&amp; !codeValid &amp;&amp; (
-              &lt;div&gt;
-                &lt;div style={card}&gt;
-                  &lt;span style={{ ...lbl, marginBottom:"16px" }}&gt;Choose your format&lt;/span&gt;
-                  {Object.entries(availableProducts).map(([k, p]) =&gt; (
-                    &lt;button key={k} onClick={() =&gt; setProduct(k)}
+            {journey === "direct" && !codeValid && (
+              <div>
+                <div style={card}>
+                  <span style={{ ...lbl, marginBottom:"16px" }}>Choose your format</span>
+                  {Object.entries(availableProducts).map(([k, p]) => (
+                    <button key={k} onClick={() => setProduct(k)}
                       style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px",
                         border:"1.5px solid "+(product===k ? accent : cardBdr),
                         background: product===k ? (isDark?"#1c1c1c":"#f8f8f8") : inpBg,
                         color:txtMain, fontFamily:"'Georgia', serif", transition:"all 0.15s",
-                        display:"flex", justifyContent:"space-between", alignItems:"center" }}&gt;
-                      &lt;div style={{ textAlign:"left" }}&gt;
-                        &lt;div style={{ fontSize:"13px", marginBottom:"2px" }}&gt;{p.label}&lt;/div&gt;
-                        &lt;div style={{ fontSize:"10px", color:txtSub }}&gt;{p.sub}&lt;/div&gt;
-                      &lt;/div&gt;
-                      &lt;div style={{ fontSize:"16px", fontWeight:"300" }}&gt;{formatPrice(p, currency)}&lt;/div&gt;
-                    &lt;/button&gt;
+                        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                      <div style={{ textAlign:"left" }}>
+                        <div style={{ fontSize:"13px", marginBottom:"2px" }}>{p.label}</div>
+                        <div style={{ fontSize:"10px", color:txtSub }}>{p.sub}</div>
+                      </div>
+                      <div style={{ fontSize:"16px", fontWeight:"300" }}>{formatPrice(p, currency)}</div>
+                    </button>
                   ))}
-                &lt;/div&gt;
-                {PRODUCTS[product]?.framed &amp;&amp; (
-                  &lt;div style={card}&gt;
-                    &lt;span style={{ ...lbl, marginBottom:"12px" }}&gt;Frame Colour&lt;/span&gt;
-                    &lt;div style={{ display:"flex", gap:"8px" }}&gt;
-                      {FRAME_COLOURS.map(c =&gt; (
-                        &lt;button key={c} onClick={() =&gt; setFrameColour(c)}
+                </div>
+                {PRODUCTS[product]?.framed && (
+                  <div style={card}>
+                    <span style={{ ...lbl, marginBottom:"12px" }}>Frame Colour</span>
+                    <div style={{ display:"flex", gap:"8px" }}>
+                      {FRAME_COLOURS.map(c => (
+                        <button key={c} onClick={() => setFrameColour(c)}
                           style={{ flex:1, padding:"10px", borderRadius:"8px", cursor:"pointer",
                             border:"1.5px solid "+(frameColour===c ? accent : cardBdr),
                             background: frameColour===c ? (isDark?"#1c1c1c":"#f5f5f5") : inpBg,
-                            color:txtMain, fontSize:"11px", fontFamily:"'Georgia', serif", textTransform:"capitalize" }}&gt;
+                            color:txtMain, fontSize:"11px", fontFamily:"'Georgia', serif", textTransform:"capitalize" }}>
                           {c}
-                        &lt;/button&gt;
+                        </button>
                       ))}
-                    &lt;/div&gt;
-                  &lt;/div&gt;
+                    </div>
+                  </div>
                 )}
-                &lt;div style={{ display:"flex", gap:"8px" }}&gt;
-                  &lt;button onClick={() =&gt; setStep(2)} style={backBtn}&gt;← Back&lt;/button&gt;
-                  &lt;button onClick={() =&gt; {
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(2)} style={backBtn}>← Back</button>
+                  <button onClick={() => {
                     const num = generateOrderNumber();
                     setOrderNumber(num);
                     setOrderStep("details");
-                  }} style={nextBtn}&gt;
+                  }} style={nextBtn}>
                     Continue → {formatPrice(PRODUCTS[product], currency)}
-                  &lt;/button&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+                  </button>
+                </div>
+              </div>
             )}
             {/* Physical purchase — buy now */}
-            {journey === "print" &amp;&amp; !codeValid &amp;&amp; (
-              &lt;div&gt;
-                &lt;div style={card}&gt;
-                  &lt;span style={{ ...lbl, marginBottom:"16px" }}&gt;Choose your format&lt;/span&gt;
-                  {Object.entries(availableProducts).filter(([k]) =&gt; PRODUCTS[k]?.physical).map(([k, p]) =&gt; (
-                    &lt;button key={k} onClick={() =&gt; setProduct(k)}
+            {journey === "print" && !codeValid && (
+              <div>
+                <div style={card}>
+                  <span style={{ ...lbl, marginBottom:"16px" }}>Choose your format</span>
+                  {Object.entries(availableProducts).filter(([k]) => PRODUCTS[k]?.physical).map(([k, p]) => (
+                    <button key={k} onClick={() => setProduct(k)}
                       style={{ width:"100%", padding:"14px 16px", borderRadius:"10px", cursor:"pointer", marginBottom:"8px",
                         border:"1.5px solid "+(product===k ? accent : cardBdr),
                         background: product===k ? (isDark?"#1c1c1c":"#f8f8f8") : inpBg,
                         color:txtMain, fontFamily:"'Georgia', serif", transition:"all 0.15s",
-                        display:"flex", justifyContent:"space-between", alignItems:"center" }}&gt;
-                      &lt;div style={{ textAlign:"left" }}&gt;
-                        &lt;div style={{ fontSize:"13px", marginBottom:"2px" }}&gt;{p.label}&lt;/div&gt;
-                        &lt;div style={{ fontSize:"10px", color:txtSub }}&gt;{p.sub}&lt;/div&gt;
-                      &lt;/div&gt;
-                      &lt;div style={{ fontSize:"16px", fontWeight:"300" }}&gt;{formatPrice(p, currency)}&lt;/div&gt;
-                    &lt;/button&gt;
+                        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                      <div style={{ textAlign:"left" }}>
+                        <div style={{ fontSize:"13px", marginBottom:"2px" }}>{p.label}</div>
+                        <div style={{ fontSize:"10px", color:txtSub }}>{p.sub}</div>
+                      </div>
+                      <div style={{ fontSize:"16px", fontWeight:"300" }}>{formatPrice(p, currency)}</div>
+                    </button>
                   ))}
-                &lt;/div&gt;
-                {PRODUCTS[product]?.framed &amp;&amp; (
-                  &lt;div style={card}&gt;
-                    &lt;span style={{ ...lbl, marginBottom:"12px" }}&gt;Frame Colour&lt;/span&gt;
-                    &lt;div style={{ display:"flex", gap:"8px" }}&gt;
-                      {FRAME_COLOURS.map(c =&gt; (
-                        &lt;button key={c} onClick={() =&gt; setFrameColour(c)}
+                </div>
+                {PRODUCTS[product]?.framed && (
+                  <div style={card}>
+                    <span style={{ ...lbl, marginBottom:"12px" }}>Frame Colour</span>
+                    <div style={{ display:"flex", gap:"8px" }}>
+                      {FRAME_COLOURS.map(c => (
+                        <button key={c} onClick={() => setFrameColour(c)}
                           style={{ flex:1, padding:"10px", borderRadius:"8px", cursor:"pointer",
                             border:"1.5px solid "+(frameColour===c ? accent : cardBdr),
                             background: frameColour===c ? (isDark?"#1c1c1c":"#f5f5f5") : inpBg,
-                            color:txtMain, fontSize:"11px", fontFamily:"'Georgia', serif", textTransform:"capitalize" }}&gt;
+                            color:txtMain, fontSize:"11px", fontFamily:"'Georgia', serif", textTransform:"capitalize" }}>
                           {c}
-                        &lt;/button&gt;
+                        </button>
                       ))}
-                    &lt;/div&gt;
-                  &lt;/div&gt;
+                    </div>
+                  </div>
                 )}
-                &lt;div style={{ display:"flex", gap:"8px" }}&gt;
-                  &lt;button onClick={() =&gt; setStep(2)} style={backBtn}&gt;← Back&lt;/button&gt;
-                  &lt;button onClick={() =&gt; {
+                <div style={{ display:"flex", gap:"8px" }}>
+                  <button onClick={() => setStep(2)} style={backBtn}>← Back</button>
+                  <button onClick={() => {
                     const num = generateOrderNumber();
                     setOrderNumber(num);
                     setOrderStep("details");
-                  }} style={nextBtn}&gt;
+                  }} style={nextBtn}>
                     Continue → {formatPrice(PRODUCTS[product], currency)}
-                  &lt;/button&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+                  </button>
+                </div>
+              </div>
             )}
             {/* Owner download */}
-            {ownerMode &amp;&amp; (
-              &lt;div style={card}&gt;
-                &lt;span style={{ ...lbl, marginBottom:"12px" }}&gt;Owner Download&lt;/span&gt;
-                &lt;select value={printSize} onChange={e =&gt; setPrintSize(e.target.value)}
-                  style={{ ...inp, marginBottom:"14px" }}&gt;
-                  {Object.entries(PRINT_SIZES).map(([k,s]) =&gt; (
-                    &lt;option key={k} value={k}&gt;{s.label} ({s.sub}) — {s.w}×{s.h}px&lt;/option&gt;
+            {ownerMode && (
+              <div style={card}>
+                <span style={{ ...lbl, marginBottom:"12px" }}>Owner Download</span>
+                <select value={printSize} onChange={e => setPrintSize(e.target.value)}
+                  style={{ ...inp, marginBottom:"14px" }}>
+                  {Object.entries(PRINT_SIZES).map(([k,s]) => (
+                    <option key={k} value={k}>{s.label} ({s.sub}) — {s.w}×{s.h}px</option>
                   ))}
-                &lt;/select&gt;
-                &lt;button onClick={download} disabled={downloading}
-                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:downloading?0.6:1 }}&gt;
+                </select>
+                <button onClick={download} disabled={downloading}
+                  style={{ ...nextBtn, width:"100%", flex:"none", opacity:downloading?0.6:1 }}>
                   {downloading ? "Generating…" : "↓ Download Clean File (No Watermark)"}
-                &lt;/button&gt;
-              &lt;/div&gt;
+                </button>
+              </div>
             )}
-          &lt;/div&gt;
-        &lt;/&gt;
+          </div>
+        </>
       )}
       {/* ORDER: CUSTOMER DETAILS */}
-      {orderStep === "details" &amp;&amp; (
-        &lt;div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}&gt;
-          &lt;div style={card}&gt;
-            &lt;span style={{ ...lbl, marginBottom:"14px" }}&gt;Your Details&lt;/span&gt;
-            &lt;label style={lbl}&gt;Full Name&lt;/label&gt;
-            &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custName}
-              onChange={e =&gt; setCustName(e.target.value)} placeholder="Jane Smith" /&gt;
-            &lt;label style={lbl}&gt;Email Address&lt;/label&gt;
-            &lt;input style={{ ...inp, marginBottom:"10px" }} type="email" value={custEmail}
-              onChange={e =&gt; setCustEmail(e.target.value)} placeholder="jane@email.com" /&gt;
-            {PRODUCTS[product]?.physical &amp;&amp; (&lt;&gt;
-              &lt;label style={lbl}&gt;Delivery Address&lt;/label&gt;
-              &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custAddress}
-                onChange={e =&gt; setCustAddress(e.target.value)} placeholder="123 Main Street" /&gt;
-              &lt;label style={lbl}&gt;City&lt;/label&gt;
-              &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCity}
-                onChange={e =&gt; setCustCity(e.target.value)} placeholder="Auckland" /&gt;
-              &lt;label style={lbl}&gt;Postcode&lt;/label&gt;
-              &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custPostcode}
-                onChange={e =&gt; setCustPostcode(e.target.value)} placeholder="1010" /&gt;
-              &lt;label style={lbl}&gt;Country&lt;/label&gt;
-              &lt;input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
-                onChange={e =&gt; setCustCountry(e.target.value)} /&gt;
-            &lt;/&gt;)}
-          &lt;/div&gt;
-          &lt;div style={{ display:"flex", gap:"8px" }}&gt;
-            &lt;button onClick={() =&gt; setOrderStep(null)} style={backBtn}&gt;← Back&lt;/button&gt;
-            &lt;button onClick={() =&gt; {
+      {orderStep === "details" && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
+          <div style={card}>
+            <span style={{ ...lbl, marginBottom:"14px" }}>Your Details</span>
+            <label style={lbl}>Full Name</label>
+            <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custName}
+              onChange={e => setCustName(e.target.value)} placeholder="Jane Smith" />
+            <label style={lbl}>Email Address</label>
+            <input style={{ ...inp, marginBottom:"10px" }} type="email" value={custEmail}
+              onChange={e => setCustEmail(e.target.value)} placeholder="jane@email.com" />
+            {PRODUCTS[product]?.physical && (<>
+              <label style={lbl}>Delivery Address</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custAddress}
+                onChange={e => setCustAddress(e.target.value)} placeholder="123 Main Street" />
+              <label style={lbl}>City</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCity}
+                onChange={e => setCustCity(e.target.value)} placeholder="Auckland" />
+              <label style={lbl}>Postcode</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custPostcode}
+                onChange={e => setCustPostcode(e.target.value)} placeholder="1010" />
+              <label style={lbl}>Country</label>
+              <input style={{ ...inp, marginBottom:"10px" }} type="text" value={custCountry}
+                onChange={e => setCustCountry(e.target.value)} />
+            </>)}
+          </div>
+          <div style={{ display:"flex", gap:"8px" }}>
+            <button onClick={() => setOrderStep(null)} style={backBtn}>← Back</button>
+            <button onClick={() => {
               if (!custName || !custEmail) { setOrderError("Please enter your name and email."); return; }
               setOrderError("");
               processPayment(orderNumber);
-            }} style={nextBtn}&gt;
+            }} style={nextBtn}>
               Continue to Payment →
-            &lt;/button&gt;
-          &lt;/div&gt;
-          {orderError &amp;&amp; &lt;div style={{ fontSize:"11px", color:"#e05555", marginTop:"8px", textAlign:"center" }}&gt;{orderError}&lt;/div&gt;}
-        &lt;/div&gt;
+            </button>
+          </div>
+          {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginTop:"8px", textAlign:"center" }}>{orderError}</div>}
+        </div>
       )}
       {/* ORDER: PAYMENT */}
-      {orderStep === "paying" &amp;&amp; (
-        &lt;div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}&gt;
-          &lt;div style={card}&gt;
-            &lt;div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}&gt;
-              &lt;span style={{ ...lbl, marginBottom:0 }}&gt;Payment&lt;/span&gt;
-              &lt;span style={{ fontSize:"16px", fontWeight:"300", color:txtMain }}&gt;{formatPrice(PRODUCTS[product], currency)}&lt;/span&gt;
-            &lt;/div&gt;
-            &lt;div style={{ fontSize:"11px", color:txtSub, marginBottom:"16px" }}&gt;
+      {orderStep === "paying" && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
+          <div style={card}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
+              <span style={{ ...lbl, marginBottom:0 }}>Payment</span>
+              <span style={{ fontSize:"16px", fontWeight:"300", color:txtMain }}>{formatPrice(PRODUCTS[product], currency)}</span>
+            </div>
+            <div style={{ fontSize:"11px", color:txtSub, marginBottom:"16px" }}>
               {PRODUCTS[product]?.label} · {PRODUCTS[product]?.sub}
-            &lt;/div&gt;
-            &lt;label style={lbl}&gt;Card Details&lt;/label&gt;
-            &lt;div id="stripe-card-element"
+            </div>
+            <label style={lbl}>Card Details</label>
+            <div id="stripe-card-element"
               style={{ padding:"12px", border:"1px solid "+inpBdr, borderRadius:"8px",
-                background:inpBg, marginBottom:"16px", minHeight:"40px" }} /&gt;
-            {orderError &amp;&amp; &lt;div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}&gt;{orderError}&lt;/div&gt;}
-            &lt;button onClick={confirmPayment} disabled={orderLoading}
+                background:inpBg, marginBottom:"16px", minHeight:"40px" }} />
+            {orderError && <div style={{ fontSize:"11px", color:"#e05555", marginBottom:"12px" }}>{orderError}</div>}
+            <button onClick={confirmPayment} disabled={orderLoading}
               style={{ width:"100%", padding:"16px", borderRadius:"9px",
                 background:orderLoading ? txtSub : accent, border:"none", color:accentFg,
                 fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
-                cursor:orderLoading?"wait":"pointer", fontFamily:"'Georgia', serif" }}&gt;
+                cursor:orderLoading?"wait":"pointer", fontFamily:"'Georgia', serif" }}>
               {orderLoading ? "Processing…" : `Pay ${formatPrice(PRODUCTS[product], currency)}`}
-            &lt;/button&gt;
-            &lt;div style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"10px" }}&gt;
+            </button>
+            <div style={{ fontSize:"9px", color:txtSub, textAlign:"center", marginTop:"10px" }}>
               Secured by Stripe · Your card details are never stored
-            &lt;/div&gt;
-          &lt;/div&gt;
-          &lt;button onClick={() =&gt; setOrderStep("details")} style={{ ...backBtn, width:"100%", marginTop:"4px" }}&gt;← Back&lt;/button&gt;
-        &lt;/div&gt;
+            </div>
+          </div>
+          <button onClick={() => setOrderStep("details")} style={{ ...backBtn, width:"100%", marginTop:"4px" }}>← Back</button>
+        </div>
       )}
       {/* ORDER: COMPLETE */}
-      {(orderStep === "complete" || completedOrder) &amp;&amp; (
-        &lt;div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}&gt;
-          &lt;div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"16px", textAlign:"center" }}&gt;
-            &lt;div style={{ fontSize:"32px" }}&gt;✨&lt;/div&gt;
-            &lt;div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub }}&gt;Order Confirmed&lt;/div&gt;
-            &lt;h2 style={{ fontSize:"22px", fontWeight:"300", fontStyle:"italic", margin:0, fontFamily:"'Playfair Display', Georgia, serif" }}&gt;
+      {(orderStep === "complete" || completedOrder) && (
+        <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"16px", textAlign:"center" }}>
+            <div style={{ fontSize:"32px" }}>✨</div>
+            <div style={{ fontSize:"9px", letterSpacing:"0.3em", textTransform:"uppercase", color:txtSub }}>Order Confirmed</div>
+            <h2 style={{ fontSize:"22px", fontWeight:"300", fontStyle:"italic", margin:0, fontFamily:"'Playfair Display', Georgia, serif" }}>
               Thank you{custName ? ", "+custName.split(" ")[0] : ""}!
-            &lt;/h2&gt;
-            &lt;div style={{ fontSize:"11px", color:txtSub, lineHeight:"1.8" }}&gt;
-              Order &lt;strong&gt;{completedOrder?.orderNumber || orderNumber}&lt;/strong&gt;&lt;br/&gt;
-              A confirmation has been sent to &lt;strong&gt;{completedOrder?.custEmail || custEmail}&lt;/strong&gt;
-            &lt;/div&gt;
-            {completedOrder &amp;&amp; !completedOrder.physical &amp;&amp; completedOrder.imageUrl &amp;&amp; (
-              &lt;div style={{ width:"100%", maxWidth:"320px" }}&gt;
-                &lt;div style={{ fontSize:"10px", color:txtSub, marginBottom:"10px", letterSpacing:"0.1em" }}&gt;
+            </h2>
+            <div style={{ fontSize:"11px", color:txtSub, lineHeight:"1.8" }}>
+              Order <strong>{completedOrder?.orderNumber || orderNumber}</strong><br/>
+              A confirmation has been sent to <strong>{completedOrder?.custEmail || custEmail}</strong>
+            </div>
+            {completedOrder && !completedOrder.physical && completedOrder.imageUrl && (
+              <div style={{ width:"100%", maxWidth:"320px" }}>
+                <div style={{ fontSize:"10px", color:txtSub, marginBottom:"10px", letterSpacing:"0.1em" }}>
                   Your high-res file is ready — no watermark
-                &lt;/div&gt;
-                &lt;a href={completedOrder.imageUrl} download={`thedaywe-${completedOrder.orderNumber}.png`}
+                </div>
+                <a href={completedOrder.imageUrl} download={`thedaywe-${completedOrder.orderNumber}.png`}
                   style={{ display:"block", width:"100%", padding:"16px", borderRadius:"9px",
                     background:accent, color:accentFg, textDecoration:"none",
                     fontSize:"11px", letterSpacing:"0.16em", textTransform:"uppercase",
-                    fontFamily:"'Georgia', serif", marginBottom:"12px" }}&gt;
+                    fontFamily:"'Georgia', serif", marginBottom:"12px" }}>
                   ↓ Download Your Star Map
-                &lt;/a&gt;
-                &lt;img src={completedOrder.imageUrl} alt="Your Star Map"
-                  style={{ width:"100%", borderRadius:"8px", boxShadow:"0 8px 24px rgba(0,0,0,0.12)" }} /&gt;
-              &lt;/div&gt;
+                </a>
+                <img src={completedOrder.imageUrl} alt="Your Star Map"
+                  style={{ width:"100%", borderRadius:"8px", boxShadow:"0 8px 24px rgba(0,0,0,0.12)" }} />
+              </div>
             )}
-            {completedOrder?.physical &amp;&amp; (
-              &lt;div style={{ ...card, width:"100%", maxWidth:"320px", textAlign:"left" }}&gt;
-                &lt;div style={{ fontSize:"12px", color:txtMain, lineHeight:"2" }}&gt;
-                  &lt;div&gt;                  📦 Your print is being prepared&lt;/div&gt;
-                  &lt;div&gt;🖨️ Printed and shipped within 3–5 days&lt;/div&gt;
-                  &lt;div&gt;📧 Tracking info will be emailed to you&lt;/div&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+            {completedOrder?.physical && (
+              <div style={{ ...card, width:"100%", maxWidth:"320px", textAlign:"left" }}>
+                <div style={{ fontSize:"12px", color:txtMain, lineHeight:"2" }}>
+                  <div>                  📦 Your print is being prepared</div>
+                  <div>🖨️ Printed and shipped within 3–5 days</div>
+                  <div>📧 Tracking info will be emailed to you</div>
+                </div>
+              </div>
             )}
-            &lt;button onClick={() =&gt; {
+            <button onClick={() => {
               setOrderStep(null); setCompletedOrder(null); setStep(0);
               setJourney(null); setCodeValid(null); setCodeInput(""); setCodeUsed(false);
             }}
               style={{ background:"transparent", border:"1px solid "+cardBdr, borderRadius:"7px",
                 padding:"9px 24px", color:txtSub, fontSize:"10px", cursor:"pointer",
-                fontFamily:"'Georgia', serif", letterSpacing:"0.1em" }}&gt;
+                fontFamily:"'Georgia', serif", letterSpacing:"0.1em" }}>
               Create Another Map
-            &lt;/button&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
+            </button>
+          </div>
+        </div>
       )}
-    &lt;/div&gt;
+    </div>
   );
 }
