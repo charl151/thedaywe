@@ -8495,7 +8495,7 @@ async function validateCode(code) {
         "Content-Type": "application/json",
         "Prefer": "return=representation"
       },
-      body: JSON.stringify({ code, type: "digital", used: false })
+      body: JSON.stringify({ code, type: "digital", used: false, created_at: new Date().toISOString() })
     }
   );
   const created = await createRes.json();
