@@ -9717,7 +9717,7 @@ export default function App() {
           <div style={{ flex:1, maxWidth:"560px", margin:"0 auto", width:"100%", padding:"20px 16px 48px" }}>
             {/* Canvas preview */}
             <div style={{ position:"relative", marginBottom:"10px" }}>
-              <canvas ref={previewRef} width={400} height={580}
+              <canvas ref={previewRef} width={400} height={720}
                 style={{ width:"100%", height:"auto", borderRadius:"12px", display:"block",
                   boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} />
               <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.1em" }}>
