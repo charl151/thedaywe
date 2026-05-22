@@ -8704,7 +8704,7 @@ function drawPoster(canvas, opts) {
   ctx.save();
   clipShape(ctx, shape, skyX, skyY, skyR);
   ctx.strokeStyle = S.border;
-  ctx.lineWidth   = 1.5*sc;
+  ctx.lineWidth   = 4*sc;
   ctx.stroke();
   ctx.restore();
 
@@ -8750,6 +8750,13 @@ function drawPoster(canvas, opts) {
     ctx.fillStyle = S.subColor;
     ctx.font = "500 " + (15*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.8;
+    // Auto-shrink font if text too wide
+    let locFontSize = 15*sc;
+    ctx.font = "500 " + locFontSize + "px 'Inter', sans-serif";
+    while (ctx.measureText(locDateLine).width > W * 0.85 && locFontSize > 8*sc) {
+      locFontSize -= 0.5*sc;
+      ctx.font = "500 " + locFontSize + "px 'Inter', sans-serif";
+    }
     ctx.fillText(locDateLine, W/2, ty); ty += 18*sc;
     ctx.globalAlpha = 1.0;
   }
@@ -9330,7 +9337,7 @@ export default function App() {
         <a href="https://www.etsy.com/shop/TheDayWe" target="_blank" rel="noopener noreferrer"
           style={{ position:"absolute", top:"50%", transform:"translateY(-50%)", right:"12px", display:"flex", alignItems:"center" }}>
           <img src="/Etsy logo (Etsy Shop Icon).png" alt="Find us on Etsy"
-            style={{ width:"52px", height:"52px", objectFit:"contain", opacity:0.65, borderRadius:"6px" }} />
+            style={{ width:"72px", height:"72px", objectFit:"contain", opacity:0.65, borderRadius:"6px" }} />
         </a>
 
         {/* Owner mode toggle */}
@@ -9479,13 +9486,13 @@ export default function App() {
               <div style={{ fontSize:"10px", color:txtSub }}>Purchased on Etsy? Enter your code to unlock your personalised design</div>
             </button>
 
-            <button onClick={() => { setJourney("print"); setProduct("unframed_8x10"); }}
+            {false && <button onClick={() => { setJourney("print"); setProduct("unframed_8x10"); }}
               style={{ width:"100%", padding:"20px", borderRadius:"14px", cursor:"pointer", marginBottom:"10px",
                 border:"1.5px solid "+cardBdr, background:cardBg, color:txtMain,
                 fontFamily:"'Georgia', serif", textAlign:"left", transition:"all 0.15s" }}>
               <div style={{ fontSize:"14px", marginBottom:"4px" }}>Order a Physical Print</div>
               <div style={{ fontSize:"10px", color:txtSub }}>Professionally printed and shipped to your door · from {formatPrice(PRODUCTS.unframed_8x10, currency)}</div>
-            </button>
+            </button>}
           </div>
         </div>
       )}
