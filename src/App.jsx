@@ -8793,13 +8793,13 @@ export default function App() {
   const [names,         setNames]        = useState("");
   const [title,         setTitle]        = useState("The Night Our Stars Aligned");
   const [footnote,      setFootnote]     = useState("");
-  const [useAuto,       setUseAuto]      = useState(true);
+  const [useAuto,       setUseAuto]      = useState(false);
   const [showLines,     setShowLines]    = useState(true);
   const [showGrid,      setShowGrid]     = useState(false);
   const [showCoords,    setShowCoords]   = useState(true);
   const [showDate,      setShowDate]     = useState(true);
   const [showTime,      setShowTime]     = useState(false);
-  const [showFootnote,  setShowFootnote] = useState(false);
+  const [showFootnote,  setShowFootnote] = useState(true);
   const [downloading,   setDownloading]  = useState(false);
   const [downloadUrl,   setDownloadUrl]  = useState(null);
   const [printSize,     setPrintSize]    = useState("8x10");
