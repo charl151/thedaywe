@@ -8636,21 +8636,21 @@ function drawPoster(canvas, opts) {
   ctx.clip();
 
   if (showGrid) {
-    const ringColor  = S.lineColor.replace(/[\d.]+\)$/, "0.28)");
-    const spokeColor = S.lineColor.replace(/[\d.]+\)$/, "0.18)");
-    ctx.strokeStyle = S.lineColor.replace(/[\d.]+\)$/, "0.5)");
-    ctx.lineWidth = 1.0*sc;
+    const ringColor  = S.lineColor.replace(/[\d.]+\)$/, "0.5)");
+    const spokeColor = S.lineColor.replace(/[\d.]+\)$/, "0.35)");
+    ctx.strokeStyle = S.lineColor.replace(/[\d.]+\)$/, "0.7)");
+    ctx.lineWidth = 1.5*sc;
     ctx.beginPath(); ctx.arc(skyX, skyY, skyR, 0, Math.PI*2); ctx.stroke();
     for (let i = 1; i <= 5; i++) {
       ctx.strokeStyle = ringColor;
-      ctx.lineWidth = 0.45*sc;
+      ctx.lineWidth = 0.8*sc;
       ctx.beginPath();
       ctx.arc(skyX, skyY, skyR * (i/6), 0, Math.PI*2);
       ctx.stroke();
     }
     for (let az = 0; az < 360; az += 15) {
       ctx.strokeStyle = az % 90 === 0 ? ringColor : spokeColor;
-      ctx.lineWidth = az % 90 === 0 ? 0.5*sc : 0.35*sc;
+      ctx.lineWidth = az % 90 === 0 ? 1.0*sc : 0.6*sc;
       ctx.beginPath();
       ctx.moveTo(skyX, skyY);
       ctx.lineTo(skyX + skyR*Math.sin(d2r(az)), skyY - skyR*Math.cos(d2r(az)));
