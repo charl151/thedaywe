@@ -8722,7 +8722,7 @@ function drawPoster(canvas, opts) {
   // Title — small spaced caps (like "THE NIGHT OUR LOVE WAS BORN")
   if (title) {
     ctx.fillStyle = S.subColor;
-    ctx.font = "500 " + (14*sc) + "px 'Inter', sans-serif";
+    ctx.font = "500 " + (17*sc) + "px 'Inter', sans-serif";
     ctx.globalAlpha = 0.85;
     // letter-spacing simulation: draw char by char
     const upper = title.toUpperCase();
@@ -9642,7 +9642,6 @@ export default function App() {
                       "Our Night to Remember",
                       "Under the Same Sky",
                       "The Night We Became Family",
-                      "Ngā Whetū o Matariki",
                       "The Night We Said I Do",
                     ].map(s => (
                       <button key={s} onClick={() => setTitle(s)}
@@ -9720,9 +9719,9 @@ export default function App() {
               <canvas ref={previewRef} width={400} height={720}
                 style={{ width:"100%", height:"auto", borderRadius:"12px", display:"block",
                   boxShadow:"0 8px 32px rgba(0,0,0,0.10)", border:"1px solid "+cardBdr }} />
-              <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.1em" }}>
-                {stars.filter(s => s.alt > 0).length} stars visible
-                {(ownerMode || codeValid) ? " · clean preview" : " · watermarked preview"}
+              <div style={{ textAlign:"center", fontSize:"9px", color:txtSub, marginTop:"6px", letterSpacing:"0.05em", lineHeight:"1.6" }}>
+                {stars.filter(s => s.alt > 0).length} stars visible · screen preview only<br/>
+                <span style={{ opacity:0.7 }}>✦ Check names &amp; title carefully · colours may vary in print · your PDF will be higher quality</span>
               </div>
             </div>
 
