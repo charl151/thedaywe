@@ -8590,14 +8590,15 @@ function computeStars(dateStr, timeStr, lat, lon) {
   });
 }
 function calcPosterHeight(W, sc, opts) {
-  const { names, title, locationName, showDate, showCoords } = opts;
-  const PAD = 42*sc, skyR = W * 0.46, skyY = PAD + skyR + 24*sc;
+  const { names, title, locationName, showDate, showCoords, showFootnote, footnote } = opts;
+  const PAD = 42*sc, skyR = W * 0.43, skyY = PAD + skyR + 24*sc;
   const textY = skyY + skyR + 70*sc;
   let ty = textY;
   if (names) ty += 60*sc;   // names
   if (title) ty += 48*sc;   // gap + title
   if (locationName) ty += 20*sc; // location/date
   if (showCoords) ty += 22*sc;   // coords
+  if (showFootnote && footnote) ty += 22*sc; // footnote
   ty += PAD * 1.5;
   return Math.ceil(ty);
 }
