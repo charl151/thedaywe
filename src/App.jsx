@@ -8590,7 +8590,7 @@ function computeStars(dateStr, timeStr, lat, lon) {
   });
 }
 function calcPosterHeight(W, sc, opts) {
-  const { names, title, locationName, showDate, showCoords, showFootnote, footnote } = opts;
+  const { names, title, locationName, showDate, showCoords } = opts;
   const PAD = 42*sc, skyR = W * 0.43, skyY = PAD + skyR + 24*sc;
   const textY = skyY + skyR + 70*sc;
   let ty = textY;
@@ -8598,12 +8598,11 @@ function calcPosterHeight(W, sc, opts) {
   if (title) ty += 48*sc;   // gap + title
   if (locationName) ty += 20*sc; // location/date
   if (showCoords) ty += 22*sc;   // coords
-  if (showFootnote && footnote) ty += 22*sc; // footnote
   ty += PAD * 1.5;
   return Math.ceil(ty);
 }
 function drawPoster(canvas, opts) {
-  const { stars, styleName, shape, names, title, footnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, sc, watermark } = opts;
+  const { stars, styleName, shape, names, title, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, sc, watermark } = opts;
   const S   = STYLES[styleName];
   const ctx = canvas.getContext("2d");
   const W   = canvas.width, H = canvas.height;
@@ -8745,14 +8744,6 @@ function drawPoster(canvas, opts) {
     ctx.globalAlpha = 1.0;
     ty += 14*sc;
   }
-  if (showFootnote && footnote) {
-    ctx.fillStyle = S.subColor;
-    ctx.font = "300 italic " + (11*sc) + "px 'Georgia', serif";
-    ctx.globalAlpha = 0.55;
-    ctx.fillText(footnote, W/2, ty);
-    ctx.globalAlpha = 1.0;
-    ty += 14*sc;
-  }
   ctx.strokeStyle = S.divColor; ctx.lineWidth = 0.7*sc;
   ctx.beginPath(); ctx.moveTo(W*0.2, H-PAD*0.7); ctx.lineTo(W*0.8, H-PAD*0.7); ctx.stroke();
   ctx.fillStyle = S.subColor;
@@ -8801,14 +8792,12 @@ export default function App() {
   const [timeStr,       setTimeStr]      = useState("22:00");
   const [names,         setNames]        = useState("");
   const [title,         setTitle]        = useState("The Night Our Stars Aligned");
-  const [footnote,      setFootnote]     = useState("");
   const [useAuto,       setUseAuto]      = useState(false);
   const [showLines,     setShowLines]    = useState(true);
   const [showGrid,      setShowGrid]     = useState(false);
   const [showCoords,    setShowCoords]   = useState(true);
   const [showDate,      setShowDate]     = useState(true);
   const [showTime,      setShowTime]     = useState(false);
-  const [showFootnote,  setShowFootnote] = useState(true);
   const [downloading,   setDownloading]  = useState(false);
   const [downloadUrl,   setDownloadUrl]  = useState(null);
   const [printSize,     setPrintSize]    = useState("8x10");
@@ -8854,7 +8843,6 @@ export default function App() {
   const lon = parseFloat(lonStr) || 0;
   const S   = STYLES[styleName];
   const isDark = S.dark;
-  const computedFootnote = footnote || autoFootnote(locationName, dateStr);
   const availableProducts = useMemo(() => {
     return Object.fromEntries(
       Object.entries(PRODUCTS).filter(([k, p]) => {
@@ -8870,11 +8858,11 @@ export default function App() {
   }, [currency]);
   const stars = useMemo(() => computeStars(dateStr, timeStr, lat, lon), [dateStr, timeStr, lat, lon]);
   const opts  = useMemo(() => ({
-    stars, styleName, shape, names, title, footnote: computedFootnote,
+    stars, styleName, shape, names, title,
     locationName, dateStr, timeStr, lat, lon,
-    showLines, showGrid, showCoords, showDate, showTime, showFootnote,
+    showLines, showGrid, showCoords, showDate, showTime,
     watermark: !ownerMode && !codeValid && !sent
-  }), [stars, styleName, shape, names, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
+  }), [stars, styleName, shape, names, title, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, ownerMode, codeValid]);
   const drawFrame = useCallback(() => {
     const canvas = previewRef.current;
     if (!canvas) return;
@@ -9583,15 +9571,12 @@ export default function App() {
                       </button>
                     ))}
                   </div>
-                  <label style={lbl}>Footnote <span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}>— auto-generated or add your own</span></label>
-                  <input style={{ ...inp, marginBottom:"10px" }} type="text" value={footnote}
-                    onChange={e => setFootnote(e.target.value)} placeholder={autoFootnote(locationName, dateStr)} />
                   <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"4px" }}>
                     {[["showLines","Constellations"],["showGrid","Grid"],["showCoords","Coordinates"],
-                      ["showDate","Date"],["showTime","Time"],["showFootnote","Footnote"]].map(([key, label]) => (
+                      ["showDate","Date"],["showTime","Time"]].map(([key, label]) => (
                       <label key={key} style={{ display:"flex", alignItems:"center", gap:"5px", fontSize:"10px", color:txtSub, cursor:"pointer", fontFamily:"'Georgia', serif" }}>
                         <input type="checkbox"
-                          checked={key==="showLines"?showLines:key==="showGrid"?showGrid:key==="showCoords"?showCoords:key==="showDate"?showDate:key==="showTime"?showTime:showFootnote}
+                          checked={key==="showLines"?showLines:key==="showGrid"?showGrid:key==="showCoords"?showCoords:key==="showDate"?showDate:showTime}
                           onChange={e => {
                             const v = e.target.checked;
                             if(key==="showLines") setShowLines(v);
@@ -9599,8 +9584,7 @@ export default function App() {
                             else if(key==="showCoords") setShowCoords(v);
                             else if(key==="showDate") setShowDate(v);
                             else if(key==="showTime") setShowTime(v);
-                            else setShowFootnote(v);
-                          }}
+                                                      }}
                           style={{ accentColor: accent }} />
                         {label}
                       </label>
