@@ -8845,7 +8845,7 @@ export default function App() {
   const lon = parseFloat(lonStr) || 0;
   const S   = STYLES[styleName];
   const isDark = S.dark;
-  const computedFootnote = useAuto ? autoFootnote(locationName, dateStr) : footnote;
+  const computedFootnote = footnote || autoFootnote(locationName, dateStr);
   const availableProducts = useMemo(() => {
     return Object.fromEntries(
       Object.entries(PRODUCTS).filter(([k, p]) => {
@@ -9575,20 +9575,8 @@ export default function App() {
                     ))}
                   </div>
                   <label style={lbl}>Footnote <span style={{ fontWeight:"300", fontStyle:"italic", textTransform:"none", letterSpacing:0 }}>— auto-generated or add your own</span></label>
-                  <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"8px" }}>
-                    <input type="checkbox" id="auto-fn" checked={useAuto} onChange={e => setUseAuto(e.target.checked)}
-                      style={{ accentColor: accent }} />
-                    <label htmlFor="auto-fn" style={{ ...lbl, marginBottom:0, cursor:"pointer" }}>Auto-generate</label>
-                  </div>
-                  {!useAuto && (
-                    <input style={{ ...inp, marginBottom:"10px" }} type="text" value={footnote}
-                      onChange={e => setFootnote(e.target.value)} placeholder="Custom footnote…" />
-                  )}
-                  {useAuto && (
-                    <div style={{ fontSize:"11px", color:txtSub, fontStyle:"italic", marginBottom:"10px" }}>
-                      "{computedFootnote}"
-                    </div>
-                  )}
+                  <input style={{ ...inp, marginBottom:"10px" }} type="text" value={footnote}
+                    onChange={e => setFootnote(e.target.value)} placeholder={autoFootnote(locationName, dateStr)} />
                   <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginTop:"4px" }}>
                     {[["showLines","Constellations"],["showGrid","Grid"],["showCoords","Coordinates"],
                       ["showDate","Date"],["showTime","Time"],["showFootnote","Footnote"]].map(([key, label]) => (
