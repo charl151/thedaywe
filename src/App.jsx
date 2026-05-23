@@ -8744,6 +8744,14 @@ function drawPoster(canvas, opts) {
     ctx.globalAlpha = 1.0;
     ty += 14*sc;
   }
+  if (showFootnote && footnote) {
+    ctx.fillStyle = S.subColor;
+    ctx.font = "300 italic " + (11*sc) + "px 'Georgia', serif";
+    ctx.globalAlpha = 0.55;
+    ctx.fillText(footnote, W/2, ty);
+    ctx.globalAlpha = 1.0;
+    ty += 14*sc;
+  }
   ctx.strokeStyle = S.divColor; ctx.lineWidth = 0.7*sc;
   ctx.beginPath(); ctx.moveTo(W*0.2, H-PAD*0.7); ctx.lineTo(W*0.8, H-PAD*0.7); ctx.stroke();
   ctx.fillStyle = S.subColor;
@@ -10082,3 +10090,4 @@ export default function App() {
     </div>
   );
 }
+
