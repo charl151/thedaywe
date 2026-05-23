@@ -8923,7 +8923,7 @@ export default function App() {
       const data = await res.json();
       if (!data.length) { setLocError("No results found."); setLocLoading(false); return; }
       const results = data.map(r => ({
-        name: r.display_name.split(",").slice(0,3).join(",").trim(),
+        name: r.display_name.split(",")[0].trim(),
         lat:  parseFloat(r.lat),
         lon:  parseFloat(r.lon),
       }));
@@ -9201,7 +9201,7 @@ export default function App() {
   const canDownload = ownerMode || codeValid || (completedOrder && !PRODUCTS[completedOrder?.product]?.physical);
   const isPhysicalJourney = journey === "print" || (codeValid && codeValid.type === "physical");
   return (
-    <div style={{ minHeight:"100vh", background:appBg, fontFamily:"'Georgia', serif", color:txtMain, display:"flex", flexDirection:"column", transition:"background 0.3s" }}>
+    <div style={{ minHeight:"100vh", background:appBg, fontFamily:"'Georgia', serif", color:txtMain, display:"flex", flexDirection:"column", transition:"background 0.3s", overflowX:"hidden" }}>
       <style>{`
         * { box-sizing:border-box }
         input:focus { border-color: ${accent} !important; }
