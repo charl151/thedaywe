@@ -8871,7 +8871,7 @@ export default function App() {
   const opts  = useMemo(() => ({
     stars, styleName, shape, names, title, footnote: computedFootnote,
     locationName, dateStr, timeStr, lat, lon,
-    showLines, showGrid, showCoords, showDate, showTime,
+    showLines, showGrid, showCoords, showDate, showTime, showFootnote,
     watermark: !ownerMode && !codeValid && !sent
   }), [stars, styleName, shape, names, title, computedFootnote, locationName, dateStr, timeStr, lat, lon, showLines, showGrid, showCoords, showDate, showTime, showFootnote, ownerMode, codeValid]);
   const drawFrame = useCallback(() => {
